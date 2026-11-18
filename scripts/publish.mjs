@@ -52,8 +52,13 @@ async function main() {
     throw new Error('docs/ is missing — run npm run build:static first.');
   }
 
-  let created = true;
+  let exists = true;
   try {
+    await api(`/repos/${owner}/${repo}`);
+  } catch {
+    exists = false;
+  }
+  if (!exists) {
     await api('/user/repos', {
       method: 'POST',
       body: JSON.stringify({
@@ -63,14 +68,8 @@ async function main() {
         auto_init: false,
       }),
     });
-  } catch (error) {
-    // Fine-grained PATs cannot create repos; an already-created empty repo is fine.
-    const message = String(error.message);
-    if (!message.includes('already exists') && !message.includes('not accessible')) throw error;
-    created = false;
-    await api(`/repos/${owner}/${repo}`);
   }
-  console.log(created ? `Created ${owner}/${repo}` : `Using existing ${owner}/${repo}`);
+  console.log(exists ? `Using existing ${owner}/${repo}` : `Created ${owner}/${repo}`);
 
   if (!existsSync(join(ROOT, '.git'))) git(['init', '-b', 'main']);
   git(['remote', 'remove', 'origin'], { allowFailure: true });
