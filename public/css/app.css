@@ -1175,7 +1175,7 @@ td small {
   margin-top: 2px;
 }
 
-/* Map overlay reuses the same chart, so it has to be re-skinned for dark. */
+/* Compact dark readout on the map; the full card owns the three-tier chart. */
 #panchayat-view {
   position: absolute;
   top: calc(14px + var(--pad-top));
@@ -1198,85 +1198,17 @@ td small {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
 }
 
-.panchayat-k {
-  margin: 0;
-  color: var(--or);
-  font: 600 11px Poppins, sans-serif;
-  letter-spacing: 0.14em;
-}
-
-#panchayat-title {
-  font: 700 24px/1.05 Poppins, sans-serif;
-  margin: 2px 0 4px;
-}
-
-.panchayat-sub {
-  font-size: 12px;
-  color: #a9a29a;
-  margin: 0;
-}
-
-#panchayat-view .tier-viz {
-  margin: 10px 0 8px;
-}
-
-#panchayat-view .tier-viz-note,
-#panchayat-view .tier-share-labels,
-#panchayat-view .tier-share-total {
-  color: #a9a29a;
-}
-
-#panchayat-view .tier-row {
-  background: rgba(255, 98, 0, 0.06);
-  color: #e8e2d8;
-  border-color: #3a2a20;
-  border-left-color: var(--or);
-  padding: 6px 8px;
-}
-
-#panchayat-view .tier-row:hover {
-  background: #241a12;
-}
-
-#panchayat-view .tier-row[aria-pressed='true'] {
-  background: #241a12;
-  border-color: var(--or);
-  box-shadow: inset 0 0 0 1px var(--or);
-}
-
-#panchayat-view .tier-name small {
-  color: #a9a29a;
-}
-
-#panchayat-view .tier-name i,
-#panchayat-view .tier-row-total b,
-#panchayat-view .tier-share-total b {
-  color: var(--or);
-}
-
-#panchayat-view .tier-post {
-  color: #a9a29a;
-}
-
-#panchayat-view .tier-post b {
-  color: #e8e2d8;
-}
-
-#panchayat-view .tier-track,
-#panchayat-view .tier-share-bar {
-  background: #332b24;
-}
-
+/* The map overlay intentionally shows only the live district readout; the
+   three-tier explanation and controls live in the story card. */
 #panchayat-readout {
-  border-top: 1px solid #3a2a20;
-  padding-top: 7px;
-  font-size: 12px;
-  line-height: 1.4;
+  font-size: 13px;
+  line-height: 1.45;
   color: #cfc7ba;
 }
 
 #panchayat-readout b {
   color: #fff;
+  font-size: 15px;
 }
 
 #panchayat-readout .pr-value {
@@ -1285,6 +1217,8 @@ td small {
 }
 
 #panchayat-readout small {
+  display: block;
+  margin-top: 4px;
   color: #a9a29a;
 }
 
@@ -2273,15 +2207,6 @@ body.show-map-bans #map-bans { display: block; }
   #panchayat-view .panchayat-overlay {
     max-height: 48vh;
     padding: 8px 10px;
-  }
-
-  #panchayat-view .tier-posts,
-  #panchayat-view .tier-share {
-    display: none;
-  }
-
-  #panchayat-title {
-    font-size: 18px;
   }
 }
 

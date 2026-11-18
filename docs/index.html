@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="./css/app.css?v=mwlqmh2g&amp;ui=20">
+<link rel="stylesheet" href="./css/app.css?v=mwlqmh2g&amp;ui=21">
 <script src="./js/zoom-check.js" defer></script>
 </head>
 <body>
@@ -52,138 +52,6 @@
 
   <div id="panchayat-view" aria-hidden="true">
     <div class="panchayat-overlay">
-      <p class="panchayat-k" lang="en">THREE-TIER · DISTRICT VIEW</p>
-      <h2 id="panchayat-title">तीन स्तर, एक नक्शा</h2>
-      <p class="panchayat-sub">ज़िला-वार गाँव, ब्लॉक और ग्राम पंचायत। स्तर बदलने पर रंग और बिंदु बदलते हैं।</p>
-      
-<div class="tier-viz" data-tier-viz="map" role="group" aria-label="तीन स्तरों के निर्वाचित प्रतिनिधि">
-  <p class="tier-viz-note">पट्टी की लंबाई <b>log₁₀</b> पैमाने पर · सही संख्या लेबल में</p>
-
-  
-  <button
-    type="button"
-    class="tier-row"
-    data-tier="zila"
-    aria-pressed="false"
-    aria-label="ज़िला पंचायत: 75 ज़िले, 75 अध्यक्ष, 3,019 सदस्य। मानचित्र पर यह स्तर दिखाएँ।"
-  >
-    <span class="tier-row-top">
-      <span class="tier-name">
-        <i aria-hidden="true">01</i>
-        ज़िला पंचायत
-        <small>75 ज़िले</small>
-      </span>
-      <span class="tier-row-total"><b>3,094</b><small>कुल पद</small></span>
-    </span>
-    <span class="tier-posts" aria-hidden="true">
-      
-      <span class="tier-post">
-        <span>अध्यक्ष</span>
-        <span class="tier-track"><i style="width: 31.9%"></i></span>
-        <b>75</b>
-      </span>
-      
-      <span class="tier-post">
-        <span>सदस्य</span>
-        <span class="tier-track"><i style="width: 59.3%"></i></span>
-        <b>3,019</b>
-      </span>
-      
-    </span>
-  </button>
-  
-  <button
-    type="button"
-    class="tier-row"
-    data-tier="kshetra"
-    aria-pressed="false"
-    aria-label="क्षेत्र पंचायत: 826 ब्लॉक, 826 प्रमुख, 75,014 सदस्य। मानचित्र पर यह स्तर दिखाएँ।"
-  >
-    <span class="tier-row-top">
-      <span class="tier-name">
-        <i aria-hidden="true">02</i>
-        क्षेत्र पंचायत
-        <small>826 ब्लॉक</small>
-      </span>
-      <span class="tier-row-total"><b>75,840</b><small>कुल पद</small></span>
-    </span>
-    <span class="tier-posts" aria-hidden="true">
-      
-      <span class="tier-post">
-        <span>प्रमुख</span>
-        <span class="tier-track"><i style="width: 49.7%"></i></span>
-        <b>826</b>
-      </span>
-      
-      <span class="tier-post">
-        <span>सदस्य</span>
-        <span class="tier-track"><i style="width: 83.1%"></i></span>
-        <b>75,014</b>
-      </span>
-      
-    </span>
-  </button>
-  
-  <button
-    type="button"
-    class="tier-row"
-    data-tier="gram"
-    aria-pressed="false"
-    aria-label="ग्राम पंचायत: 57,694 ग्राम पंचायतें, 57,694 प्रधान, 7,40,352 सदस्य। मानचित्र पर यह स्तर दिखाएँ।"
-  >
-    <span class="tier-row-top">
-      <span class="tier-name">
-        <i aria-hidden="true">03</i>
-        ग्राम पंचायत
-        <small>57,694 ग्राम पंचायतें</small>
-      </span>
-      <span class="tier-row-total"><b>7,98,046</b><small>कुल पद</small></span>
-    </span>
-    <span class="tier-posts" aria-hidden="true">
-      
-      <span class="tier-post">
-        <span>प्रधान</span>
-        <span class="tier-track"><i style="width: 81.1%"></i></span>
-        <b>57,694</b>
-      </span>
-      
-      <span class="tier-post">
-        <span>सदस्य</span>
-        <span class="tier-track"><i style="width: 100.0%"></i></span>
-        <b>7,40,352</b>
-      </span>
-      
-    </span>
-  </button>
-  
-
-  <div class="tier-share">
-    <div
-      class="tier-share-bar"
-      role="img"
-      aria-label="कुल 8,76,980 पदों का स्तर-वार बँटवारा: ज़िला पंचायत 0.4 प्रतिशत, क्षेत्र पंचायत 8.6 प्रतिशत, ग्राम पंचायत 91.0 प्रतिशत"
-    >
-      
-      <i class="share-zila" style="width: 0.35%" title="ज़िला पंचायत: 3,094 (0.4%)"></i>
-      
-      <i class="share-kshetra" style="width: 8.65%" title="क्षेत्र पंचायत: 75,840 (8.6%)"></i>
-      
-      <i class="share-gram" style="width: 91.00%" title="ग्राम पंचायत: 7,98,046 (91.0%)"></i>
-      
-    </div>
-    <div class="tier-share-labels">
-      
-      <span><s class="share-zila"></s>0.4% ज़िला पंचायत</span>
-      
-      <span><s class="share-kshetra"></s>8.6% क्षेत्र पंचायत</span>
-      
-      <span><s class="share-gram"></s>91.0% ग्राम पंचायत</span>
-      
-    </div>
-  </div>
-  <p class="tier-share-total">कुल <b>8,76,980</b> निर्वाचित पद</p>
-</div>
-
       <div id="panchayat-readout" aria-live="polite"></div>
     </div>
   </div>
