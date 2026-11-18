@@ -1,0 +1,29 @@
+<section class="step" data-m="network" id="village-network">
+  <div class="card dark">
+    <p class="k"><span lang="en">UTTAR PRADESH · VILLAGE NETWORK</span></p>
+    <h2>गाँव की टीम, <span class="or">प्रभाव के साथ</span></h2>
+    <p>हर ग्राम पंचायत एक बड़ा वृत्त है, नक्शे पर अपनी जगह के पास। उसके अंदर टीम सदस्य छोटे वृत्त हैं — आकार प्रभाव दिखाता है: <b>&lt;100</b>, <b>100–300</b>, <b>300+</b>। डैश रेखा एक ही विधानसभा की निकट पंचायतें जोड़ती है। सदस्य पर क्लिक करें: गाँव की टीम जुड़ती है और प्रभाव का स्तर ग्रे चार्ट में खुलता है।</p>
+    <p class="sm">कीबोर्ड से: सदस्य वृत्त पर <span lang="en">Tab</span> दबाकर जाएँ और <span lang="en">Enter</span> या <span lang="en">Space</span> से विवरण खोलें; <span lang="en">Escape</span> से बंद करें।</p>
+
+    <label class="network-label" for="network-district">ज़िला</label>
+    <select id="network-district">
+      <option value="">ज़िले लोड हो रहे हैं…</option>
+    </select>
+
+    <label class="network-label" for="network-block">विकास खंड / ब्लॉक</label>
+    <select id="network-block" disabled>
+      <option value="">ब्लॉक चुनें</option>
+    </select>
+
+    <p id="network-status" class="loading" role="status" aria-live="polite">
+      नेटवर्क लोड हो रहा है…
+    </p>
+    <p class="note">
+      नारंगी-केवल रंग योजना। टीम/प्रभाव डेमो डेटा है; क्लिक पर ग्रे चार्ट प्रभाव-स्तर का विवरण दिखाता है। यह दृश्य प्रशासनिक संदर्भ के लिए है।
+    </p>
+    <p class="src">
+      SOI गाँव सीमाएँ: <code>vb_soi_up.GeoJSON</code> · गाँव, GP और ब्लॉक: <code>UTTAR PRADESH_VILLAGES.geojson</code> ·
+      समूह साझा ग्राम पंचायत कोड पर है · डैश रेखा एक ही विधानसभा की निकटतम पंचायतें जोड़ती है · एक समय में चुने हुए ब्लॉक के गाँव दिखते हैं।
+    </p>
+  </div>
+</section>

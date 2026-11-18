@@ -1,0 +1,15 @@
+node_modules/
+build/
+build-log.txt
+reports/*.csv
+.env
+.DS_Store
+npm-debug.log*
+
+# Raw source data is far too large for Git (Data/ ~729 MB, SOI GeoJSON ~606 MB).
+# The Pages-ready snapshot lives in docs/ and contains everything the site needs.
+Data/
+vb_soi_up.GeoJSON
+*.gif
+*.pdf
+*.xlsx

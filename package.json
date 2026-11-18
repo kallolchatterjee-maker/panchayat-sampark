@@ -1,0 +1,31 @@
+{
+  "name": "panchayat-sampark",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "उत्तर प्रदेश पंचायत अभियान — scrollytelling map (SSR + D3)",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs",
+    "data": "node scripts/build-data.mjs",
+    "build:static": "node scripts/build-static.mjs",
+    "check": "node scripts/lib/check.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "publish": "node scripts/publish.mjs",
+    "postinstall": "node scripts/vendor.mjs"
+  },
+  "dependencies": {
+    "compression": "^1.8.1",
+    "d3": "^7.9.0",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "topojson-client": "^3.1.0"
+  },
+  "devDependencies": {
+    "mapshaper": "^0.6.113",
+    "topojson-server": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

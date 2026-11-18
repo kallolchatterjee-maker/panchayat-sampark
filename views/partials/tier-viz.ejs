@@ -1,0 +1,55 @@
+<%
+  // Shared by the three-tier card and the map overlay. The buttons carry no
+  // behaviour here: public/js/main.js wires every [data-tier-viz] group so the
+  // two copies always stay in sync with the map's selected tier.
+  const tierVizKey = typeof vizKey === 'string' && vizKey ? vizKey : 'main';
+%>
+<div class="tier-viz" data-tier-viz="<%= tierVizKey %>" role="group" aria-label="तीन स्तरों के निर्वाचित प्रतिनिधि">
+  <p class="tier-viz-note">पट्टी की लंबाई <b>log₁₀</b> पैमाने पर · सही संख्या लेबल में</p>
+
+  <% vm.tiers.forEach((tier) => { %>
+  <button
+    type="button"
+    class="tier-row"
+    data-tier="<%= tier.id %>"
+    aria-pressed="false"
+    aria-label="<%= tier.label %>: <%= num(tier.units) %> <%= tier.unitLabel %>, <%= num(tier.head) %> <%= tier.headLabel %>, <%= num(tier.member) %> <%= tier.memberLabel %>। मानचित्र पर यह स्तर दिखाएँ।"
+  >
+    <span class="tier-row-top">
+      <span class="tier-name">
+        <i aria-hidden="true"><%= tier.no %></i>
+        <%= tier.label %>
+        <small><%= num(tier.units) %> <%= tier.unitLabel %></small>
+      </span>
+      <span class="tier-row-total"><b><%= num(tier.total) %></b><small>कुल पद</small></span>
+    </span>
+    <span class="tier-posts" aria-hidden="true">
+      <% tier.posts.forEach((post) => { %>
+      <span class="tier-post">
+        <span><%= post.label %></span>
+        <span class="tier-track"><i style="width: <%= post.width.toFixed(1) %>%"></i></span>
+        <b><%= num(post.value) %></b>
+      </span>
+      <% }) %>
+    </span>
+  </button>
+  <% }) %>
+
+  <div class="tier-share">
+    <div
+      class="tier-share-bar"
+      role="img"
+      aria-label="कुल <%= num(vm.tierTotals.reps) %> पदों का स्तर-वार बँटवारा: <%= vm.tiers.map((tier) => `${tier.label} ${tier.share.toFixed(1)} प्रतिशत`).join(', ') %>"
+    >
+      <% vm.tiers.forEach((tier) => { %>
+      <i class="share-<%= tier.id %>" style="width: <%= tier.share.toFixed(2) %>%" title="<%= tier.label %>: <%= num(tier.total) %> (<%= tier.share.toFixed(1) %>%)"></i>
+      <% }) %>
+    </div>
+    <div class="tier-share-labels">
+      <% vm.tiers.forEach((tier) => { %>
+      <span><s class="share-<%= tier.id %>"></s><%= tier.share.toFixed(1) %>% <%= tier.label %></span>
+      <% }) %>
+    </div>
+  </div>
+  <p class="tier-share-total">कुल <b><%= num(vm.tierTotals.reps) %></b> निर्वाचित पद</p>
+</div>

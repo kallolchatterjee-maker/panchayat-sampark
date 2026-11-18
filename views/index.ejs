@@ -1,0 +1,30 @@
+<%- include('partials/head') %>
+<%- include('partials/map') %>
+
+<main class="steps" id="steps" tabindex="-1">
+  <%- include('partials/hero') %>
+  <%- include('partials/three-tier') %>
+  <%- include('partials/amethi-assembly') %>
+  <%- include('partials/layers') %>
+  <%- include('partials/booths') %>
+  <%- include('partials/density') %>
+  <%- include('partials/villages') %>
+  <%- include('partials/network') %>
+  <%- include('partials/ground') %>
+  <%- include('partials/saturation') %>
+  <%- include('partials/drill') %>
+</main>
+
+<noscript>
+  <div class="card" style="position:fixed;left:16px;bottom:16px;max-width:420px;z-index:9">
+    नक्शा और विधानसभा-ड्रिलडाउन के लिए JavaScript चालू करें। ऊपर के सभी आँकड़े
+    सर्वर पर बने हैं और बिना JavaScript भी दिखते हैं।
+  </div>
+</noscript>
+
+<script type="application/json" id="boot"><%- vm.bootJson %></script>
+<script src="/vendor/d3.min.js"></script>
+<script src="/vendor/topojson-client.min.js"></script>
+<script type="module" src="/js/main.js?v=<%= vm.v %>&amp;ui=17"></script>
+</body>
+</html>

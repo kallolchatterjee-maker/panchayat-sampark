@@ -1,0 +1,45 @@
+<section class="step" data-m="drill" id="drill">
+  <div class="card dark">
+    <p class="k"><span lang="en">DRILL-DOWN · AC → VILLAGE → BOOTH</span></p>
+    <h2>विधानसभा से <span class="or">गाँव तक</span></h2>
+
+    <label class="sr" for="sel">विधानसभा चुनें</label>
+    <select id="sel">
+      <option value="">— विधानसभा चुनें —</option>
+      <% vm.acOptions.forEach((ac) => { %>
+      <option value="<%= ac.no %>"><%= ac.name %> · <%= ac.district %> · <%= num(ac.booths) %> बूथ</option>
+      <% }) %>
+    </select>
+
+    <div class="search">
+      <label class="sr" for="q">गाँव खोजें</label>
+      <p class="sr" id="search-hint">कम से कम दो अक्षर लिखें। परिणाम आने पर Tab दबाकर सूची में जाएँ और Enter से चुनें।</p>
+      <input id="q" type="search" placeholder="गाँव / ग्राम पंचायत / बूथ लेबल खोजें…" autocomplete="off" aria-describedby="search-hint">
+      <div class="results" id="results" role="group" aria-label="खोज परिणाम"></div>
+      <p class="sr" id="search-status" role="status" aria-live="polite"></p>
+    </div>
+
+    <p class="sr" id="drill-status" role="status" aria-live="polite"></p>
+
+    <div class="panel" id="panel" tabindex="-1">
+      <p class="loading" id="prompt">
+        विधानसभा चुनें या नक्शे पर क्लिक करें। हर गाँव का रंग उससे जुड़े बूथों की
+        संख्या दिखाता है — गहरा नारंगी = अधिक, हल्का/पारदर्शी = कम; सफ़ेद रेखाएँ
+        ग्राम पंचायत की सीमाएँ हैं।
+      </p>
+    </div>
+
+    <p class="note">
+      गाँव-बूथ लिंक अनुमानित है (नाम-मिलान): <%= pct(vm.meta.match.labelCoveragePct / 100) %>
+      लेबल जुड़े, बाकी “बिना जुड़े लेबल” में दिखते हैं। पूरी सूची
+      <code>reports/village-match-report.csv</code> में है।
+    </p>
+    <p class="src">
+      स्रोत: <code>Uttar Pradesh 2026 (AC_Booth &amp; Village list).csv</code> ·
+      <code>UP_Booth_Meta.csv</code> (संगठन ज़िला, मंडल, शक्ति केंद्र) ·
+      <code>UTTAR PRADESH_VILLAGES.geojson</code> · <code>UTTAR PRADESH_ASSEMBLY.geojson</code> ·
+      सीमाएँ Census 2011, बूथ 2026 — दोनों की वर्ष-भिन्नता स्वीकार्य नहीं, केवल संदर्भ।
+      निर्मित: <%= vm.meta.builtAt.slice(0, 10) %>
+    </p>
+  </div>
+</section>

@@ -1,0 +1,45 @@
+<section class="step" data-m="density">
+  <div class="card dark">
+    <p class="k"><span lang="en">BOOTH DENSITY · BOOTHS PER KM²</span></p>
+    <h2>बूथ <span class="or">घनत्व</span></h2>
+    <p>विधानसभा क्षेत्रफल पर बूथों का दबाव। शहरी सीटें ऊपर, बड़ी ग्रामीण सीटें नीचे।</p>
+
+    <h3>सबसे घनी</h3>
+    <table>
+      <caption>सबसे अधिक बूथ घनत्व वाली विधानसभाएँ</caption>
+      <thead>
+        <tr><th scope="col">विधानसभा</th><th scope="col">बूथ प्रति वर्ग किमी</th></tr>
+      </thead>
+      <tbody>
+        <% vm.densityTop.forEach((ac, i) => { %>
+        <tr>
+          <td><%= i + 1 %>. <%= ac.name %><small><%= ac.district %></small></td>
+          <td><%= decimal(ac.boothsPerKm2, 1) %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <h3>सबसे कम घनी</h3>
+    <table>
+      <caption>सबसे कम बूथ घनत्व वाली विधानसभाएँ</caption>
+      <thead>
+        <tr><th scope="col">विधानसभा</th><th scope="col">बूथ प्रति वर्ग किमी</th></tr>
+      </thead>
+      <tbody>
+        <% vm.densityBottom.forEach((ac, i) => { %>
+        <tr>
+          <td><%= i + 1 %>. <%= ac.name %><small><%= ac.district %></small></td>
+          <td><%= decimal(ac.boothsPerKm2, 1) %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <div class="chart" id="scatter" data-chart="scatter" role="group" aria-label="घनत्व और सूचकांक का scatter" aria-describedby="scatter-desc"></div>
+    <p class="sr" id="scatter-desc">x अक्ष = बूथ प्रति वर्ग किमी (वर्गमूल पैमाना), y अक्ष = बूथ सैचुरेशन इंडेक्स। हर बिंदु एक विधानसभा है।</p>
+    <p class="sm" aria-hidden="true">x = बूथ प्रति वर्ग किमी (वर्गमूल पैमाना) · y = बूथ सैचुरेशन इंडेक्स ·
+      हर बिंदु एक विधानसभा।</p>
+    <p class="note">घनत्व की गणना सरलीकृत सीमा से नहीं, मूल Census बहुभुज के क्षेत्रफल से की गई है।</p>
+  </div>
+</section>

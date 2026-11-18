@@ -1,0 +1,32 @@
+<section class="step" data-m="villages">
+  <div class="card">
+    <p class="k"><span lang="en">VILLAGES &amp; GRAM PANCHAYATS</span></p>
+    <h2><%= num(vm.meta.totals.villages) %> गाँव,<br><span class="or"><%= num(vm.meta.totals.gps) %> ग्राम पंचायत</span></h2>
+
+    <div class="tiles">
+      <div class="tile"><b><%= num(vm.meta.totals.blocks) %></b><span>विकास खंड / ब्लॉक</span></div>
+      <div class="tile"><b><%= num(vm.meta.match.villagesWithBooths) %></b><span>गाँव जिनमें बूथ जुड़े</span></div>
+      <div class="tile"><b><%= pct(vm.meta.match.boothCoveragePct / 100) %></b><span>बूथ लिंक कवरेज</span></div>
+      <div class="tile"><b><%= num(vm.meta.villagesWithoutGp) %></b><span>गाँव बिना GP कोड</span></div>
+    </div>
+
+    <p>नक्शा गाँवों की 0.05° ग्रिड घनत्व दिखाता है — हर खाने का रंग जुड़े बूथों की
+      संख्या से गहरा होता है। किसी विधानसभा में जाकर असली गाँव बहुभुज देखें।</p>
+
+    <% if (vm.meta.urbanAcs.length) { %>
+    <div class="alert">
+      पूरी तरह शहरी, बिना गाँव बहुभुज: 
+      <%= vm.meta.urbanAcs.map((a) => a.name).join(' · ') %>
+    </div>
+    <% } %>
+
+    <p class="note">
+      <%= num(vm.meta.blankVillageNames) %> गाँवों का नाम कोष्ठक में खाली है,
+      <%= num(vm.meta.totals.unusableVillages) %> बहुभुज में विधानसभा क्रमांक नहीं था, इसलिए वे नक्शे से बाहर हैं।
+    </p>
+    <p class="src">
+      गाँव + ग्राम पंचायत + ब्लॉक: <code>UTTAR PRADESH_VILLAGES.geojson</code> ·
+      एक ही गाँव के कई बूथ-लेबल जोड़े गए हैं।
+    </p>
+  </div>
+</section>

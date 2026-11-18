@@ -1,0 +1,59 @@
+<section class="step" data-m="panchayat">
+  <div class="card">
+    <p class="k"><span lang="en">THREE-TIER PANCHAYAT</span> · अभियान डेक</p>
+    <h2>तीन स्तर, <span class="or">निर्वाचित प्रतिनिधि</span></h2>
+    <p class="sm">हर स्तर के अध्यक्ष/प्रमुख/प्रधान और सदस्य अलग-अलग पट्टियों में।
+      किसी स्तर को चुनें — नक्शा उसी स्तर की ज़िला-वार मात्रा दिखाएगा।</p>
+
+    <%- include('tier-viz', { vm, vizKey: 'card' }) %>
+
+    <div class="district-pick">
+      <label for="district-select">ज़िला चुनें — अगले कार्ड में इसी ज़िले की सभी विधानसभाएँ दिखेंगी</label>
+      <select id="district-select" data-district-select>
+        <% vm.districtOptions.forEach((name) => { %>
+          <option value="<%= name %>" <%= name === 'Amethi' ? 'selected' : '' %>><%= name %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="tier-lookup" data-tier-lookup aria-live="polite">
+      <div class="tier-lookup-head">
+        <b>नक्शे से ज़िला चुनें</b>
+        <button type="button" data-tier-clear hidden>साफ़ करें ×</button>
+      </div>
+      <p class="sm" data-tier-lookup-body>किसी ज़िले पर क्लिक करने पर उसके गाँव, ब्लॉक और ग्राम पंचायत यहाँ दिखेंगे।</p>
+    </div>
+
+    <p class="note">विजेता के साथ पहले और दूसरे उपविजेता जोड़ने पर <%= num(vm.tierTotals.reps) %> × 3 = <b class="or"><%= num(vm.tierTotals.withRunnersUp) %></b></p>
+    <p class="note">यह कार्ड अभियान डेक का है। डेटासेट में ग्राम पंचायतों की संख्या
+      <b><%= num(vm.meta.totals.gps) %></b> और ब्लॉक <b><%= num(vm.meta.totals.blocks) %></b> हैं।
+      नक्शा ज़िला-वार डेटा से बना है; तीन ज़िलों में ब्लॉक-गणना उपलब्ध नहीं है।</p>
+
+    <div class="panchayat-sample" data-panchayat-explorer>
+      <p class="k">अमेठी · <span lang="en">workbook sample</span></p>
+      <h3>ज़िला से ग्राम पंचायत तक</h3>
+      <p class="sm">यह अमेठी का नमूना है, उत्तर प्रदेश के सभी जिलों का सारांश नहीं।</p>
+      <div class="panchayat-stats tiles">
+        <div class="tile"><b><%= num(vm.boot.panchayat.zilaWardRecords) %></b><span>ज़िला पंचायत वार्ड प्रविष्टियाँ</span></div>
+        <div class="tile"><b><%= num(vm.boot.panchayat.blocks.length) %></b><span>क्षेत्र पंचायत / ब्लॉक</span></div>
+        <div class="tile"><b><%= num(vm.boot.panchayat.kshetraWardRecords) %></b><span>क्षेत्र पंचायत वार्ड प्रविष्टियाँ</span></div>
+        <div class="tile"><b><%= num(vm.boot.panchayat.gpRecords) %></b><span>ग्राम पंचायत सारांश पंक्तियाँ · <%= num(vm.boot.panchayat.uniqueGps) %> अलग-अलग नाम</span></div>
+      </div>
+      <details>
+        <summary>ज़िला पंचायत वार्ड (<%= num(vm.boot.panchayat.zilaWards.length) %>)</summary>
+        <ul class="panchayat-list" tabindex="0">
+          <% for (const ward of vm.boot.panchayat.zilaWards) { %>
+            <li><%= ward %></li>
+          <% } %>
+        </ul>
+      </details>
+      <label for="panchayat-block">ब्लॉक चुनें</label>
+      <select id="panchayat-block" data-panchayat-block>
+        <% for (const block of vm.boot.panchayat.blocks) { %>
+          <option value="<%= block.name %>"><%= block.name %></option>
+        <% } %>
+      </select>
+      <div class="panchayat-block-details" data-panchayat-details aria-live="polite"></div>
+    </div>
+  </div>
+</section>

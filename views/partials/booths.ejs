@@ -1,0 +1,56 @@
+<section class="step" data-m="ac">
+  <div class="card">
+    <p class="k"><span lang="en">ASSEMBLY · BOOTH ARITHMETIC</span></p>
+    <h2><%= num(vm.meta.totals.acs) %> विधानसभा,<br><span class="or"><%= num(vm.meta.totals.booths) %> बूथ</span></h2>
+    <p>औसत <b><%= num(vm.meta.totals.booths / vm.meta.totals.acs) %></b> बूथ प्रति विधानसभा ·
+      मीडियन <b><%= num(vm.median) %></b></p>
+
+    <div class="tiles">
+      <div class="tile"><b><%= num(vm.meta.org.zilas) %></b><span>संगठन ज़िला</span></div>
+      <div class="tile"><b><%= num(vm.meta.org.mandals) %></b><span>मंडल</span></div>
+      <div class="tile"><b><%= num(vm.meta.org.shaktiKendras) %></b><span>शक्ति केंद्र</span></div>
+      <div class="tile"><b><%= num(vm.meta.org.booths) %></b><span>बूथ, ज़िला–मंडल–शक्ति केंद्र से जुड़े</span></div>
+    </div>
+
+    <div class="hist" role="img" aria-label="विधानसभाओं में बूथ संख्या का वितरण। <%= vm.hist.bars.map((b) => `${b.label} बूथ: ${b.count} विधानसभा`).join('; ') %>">
+      <% vm.hist.bars.forEach((b) => { %>
+      <div class="b" title="<%= b.label %> बूथ · <%= b.count %> विधानसभा">
+        <em><%= b.count %></em>
+        <i style="height: <%= b.height.toFixed(1) %>%"></i>
+      </div>
+      <% }) %>
+    </div>
+    <div class="hist-x" aria-hidden="true">
+      <% vm.hist.bars.forEach((b) => { %><span><%= b.label.split('–')[0] %></span><% }) %>
+    </div>
+
+    <table style="margin-top:14px">
+      <caption>बूथ संख्या के चरम और लिंक कवरेज</caption>
+      <thead>
+        <tr><th scope="col">मापक</th><th scope="col">मान</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>सबसे अधिक बूथ<small><%= vm.maxAc.name %> · <%= vm.maxAc.district %></small></td>
+          <td><%= num(vm.maxAc.booths) %></td>
+        </tr>
+        <tr>
+          <td>सबसे कम बूथ<small><%= vm.minAc.name %> · <%= vm.minAc.district %></small></td>
+          <td><%= num(vm.minAc.booths) %></td>
+        </tr>
+        <tr>
+          <td>बूथ-गाँव लिंक कवरेज</td>
+          <td><%= pct(vm.meta.match.boothCoveragePct / 100) %></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="sm">हर बूथ 2026 विधानसभा बूथ सूची की एक पंक्ति है; कुल
+      <%= num(vm.meta.totals.booths) %> पंक्तियाँ। संगठन ज़िला प्रशासनिक ज़िले से अलग इकाई है —
+      <%= num(vm.meta.org.zilas) %> संगठन ज़िले, <%= num(vm.meta.totals.districts) %> प्रशासनिक ज़िलों पर।
+      हर बूथ अपने मंडल और संगठन ज़िले से जुड़ा है।
+      <% if (vm.meta.org.unassignedBooths) { %>
+      <%= num(vm.meta.org.unassignedBooths) %> बूथ स्रोत में बिना शक्ति केंद्र के हैं; वे अपने मंडल में “अनिर्दिष्ट” दिखते हैं।
+      <% } %></p>
+    <p class="src">संगठन: <code>UP_Booth_Meta.csv</code> · बूथ सूची से विधानसभा क्रमांक और बूथ क्रमांक पर जोड़ा गया।</p>
+  </div>
+</section>

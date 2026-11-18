@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>लॉग इन · उत्तर प्रदेश पंचायत अभियान</title>
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Khand:wght@600;700&family=Mukta:wght@400;600;800&display=swap">
+<style>
+:root{--or:#FF6200;--ink:#141414;--cream:#F5F2EC;--mute:#8a857c;--line:#2b2b2b}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--ink);color:var(--cream);font:400 17px/1.5 Mukta,system-ui,sans-serif;padding:24px}
+.login{width:min(100%,440px);background:var(--cream);color:var(--ink);border-top:7px solid var(--or);padding:38px 36px 32px;box-shadow:0 24px 70px rgba(0,0,0,.45)}
+.k{font:700 13px Mukta;letter-spacing:.18em;color:var(--or);margin:0 0 12px}
+h1{font:700 clamp(38px,9vw,54px)/1 Khand,sans-serif;margin:0 0 10px}
+h1 span{color:var(--or)}
+.sub{margin:0 0 26px;color:var(--mute);font-size:15px}
+label{display:block;font-weight:800;font-size:15px;margin:0 0 16px}
+input{display:block;width:100%;margin-top:7px;padding:13px 14px;border:1px solid var(--line);background:#fff;color:var(--ink);font:600 16px Mukta,sans-serif;border-radius:0}
+input:focus{outline:3px solid rgba(255,98,0,.28);border-color:var(--or)}
+button{width:100%;margin-top:6px;padding:15px;border:0;background:var(--or);color:var(--ink);font:800 17px Mukta,sans-serif;cursor:pointer}
+button:hover{background:#ff7c26}
+#error{display:none;margin:0 0 14px;padding:10px 12px;background:#fbe4dc;border-left:4px solid #b3261e;color:#7a1a14;font-weight:600;font-size:14px}
+#error.on{display:block}
+.hint{margin:22px 0 0;padding-top:16px;border-top:1px solid #d8d2c6;color:var(--mute);font-size:13px}
+code{background:#e6e0d5;padding:2px 6px;font-weight:800;color:var(--ink)}
+@media(max-width:520px){.login{padding:28px 22px}}
+</style>
+</head>
+<body>
+<main class="login">
+  <p class="k">UTTAR PRADESH · PANCHAYAT SAMPARK</p>
+  <h1>पंचायत अभियान<br><span>लॉग इन</span></h1>
+  <p class="sub">नक्शा, गाँव-डेटा और विश्लेषण देखने के लिए लॉग इन करें।</p>
+  <form id="login-form" novalidate>
+    <label for="username">उपयोगकर्ता नाम
+      <input id="username" name="username" type="text" autocomplete="username" required autofocus>
+    </label>
+    <label for="password">पासवर्ड
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+    </label>
+    <p id="error" role="alert"></p>
+    <button type="submit">लॉग इन करें</button>
+  </form>
+  <p class="hint">डेमो लॉगिन: <code>admin</code> / <code>admin123</code></p>
+</main>
+<script src="./js/login.js"></script>
+</body>
+</html>

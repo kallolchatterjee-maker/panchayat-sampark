@@ -1,0 +1,29 @@
+<section class="step" data-m="dt">
+  <div class="card dark">
+    <p class="k" lang="en">ADMINISTRATIVE LAYERS</p>
+    <h2>ज़िले, लोकसभा और <span class="or">बूथ</span></h2>
+    <p>नक्शे पर ज़िले बूथ संख्या से रंगे हैं। ऊपर दिए बटनों से लोकसभा, विधानसभा,
+      तहसील, बूथ घनत्व, सैचुरेशन इंडेक्स, गाँव और ग्राम पंचायत नेटवर्क देखें।</p>
+
+    <table>
+      <caption>बूथ संख्या के अनुसार शीर्ष 6 ज़िले</caption>
+      <thead>
+        <tr><th scope="col">ज़िला</th><th scope="col">बूथ</th></tr>
+      </thead>
+      <tbody>
+        <% vm.topDistricts.forEach((d) => { %>
+        <tr>
+          <td><%= d.name %><small><%= d.acs.length %> विधानसभा · <%= num(d.villages) %> गाँव</small></td>
+          <td><%= num(d.booths) %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <p class="src">
+      सीमाएँ: Census 2011 (सरलीकृत) · बूथ: 2026 विधानसभा बूथ सूची ·
+      <%= num(vm.meta.totals.districts) %> ज़िले · <%= num(vm.meta.totals.pc) %> लोकसभा ·
+      <%= num(vm.meta.totals.subdistricts) %> तहसील
+    </p>
+  </div>
+</section>
