@@ -64,8 +64,11 @@ async function main() {
       }),
     });
   } catch (error) {
-    if (!String(error.message).includes('already exists')) throw error;
+    // Fine-grained PATs cannot create repos; an already-created empty repo is fine.
+    const message = String(error.message);
+    if (!message.includes('already exists') && !message.includes('not accessible')) throw error;
     created = false;
+    await api(`/repos/${owner}/${repo}`);
   }
   console.log(created ? `Created ${owner}/${repo}` : `Using existing ${owner}/${repo}`);
 
