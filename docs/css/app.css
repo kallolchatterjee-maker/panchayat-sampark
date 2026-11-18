@@ -23,6 +23,60 @@
   box-sizing: border-box;
 }
 
+/* Long place names and mixed Hindi/English labels must never force the
+   narrow story column to overflow (especially at non-100% browser zoom). */
+html,
+body {
+  overflow-x: hidden;
+}
+
+body,
+.card,
+.card *,
+#tip,
+.results,
+.legend,
+.map-bans,
+.influence-panel,
+.network-card,
+.network-legend {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+code,
+pre,
+.tag,
+.tile span,
+small,
+th,
+td small {
+  overflow-wrap: anywhere;
+}
+
+.card table,
+.card .tiles,
+.card .amethi-ac-chart,
+.card .tier-viz,
+.card .panchayat-list {
+  max-width: 100%;
+}
+
+.card table {
+  table-layout: auto;
+}
+
+.card th,
+.card td {
+  min-width: 0;
+}
+
+.card td:last-child,
+.card .tier-name small,
+.card .tier-row-total {
+  white-space: normal;
+}
+
 /* Two-tone focus ring: visible on both the cream cards and the dark map. */
 :focus-visible {
   outline: 3px solid #121212;
@@ -82,7 +136,7 @@ textarea {
 #map {
   position: fixed;
   inset: 0 0 0 auto;
-  width: 58vw;
+  width: calc(100vw - min(48vw, 720px));
   height: 100vh;
   background:
     radial-gradient(120% 90% at 70% 20%, #1d1a17 0%, #121212 55%, #0d0d0d 100%);
@@ -494,7 +548,7 @@ textarea {
 .steps {
   position: relative;
   z-index: 2;
-  width: 42vw;
+  width: min(48vw, 720px);
   pointer-events: none;
 }
 
@@ -1931,6 +1985,81 @@ body.show-map-bans #map-bans { display: block; }
 }
 #influence-svg { width: 100%; height: 170px; display: block; }
 .influence-legend { font-size: 11px; color: #aaa; }
+
+/* Tighter card/table typography for medium desktops where 42vw was cramped. */
+@media (min-width: 861px) and (max-width: 1400px) {
+  .steps {
+    width: min(46vw, 660px);
+  }
+
+  #map {
+    width: calc(100vw - min(46vw, 660px));
+  }
+
+  .step {
+    padding: 6vh 2.4vw;
+  }
+
+  .card {
+    padding: 22px 24px;
+  }
+
+  h1,
+  h2 {
+    font-size: clamp(34px, 3.8vw, 56px);
+  }
+
+  h2 {
+    font-size: clamp(28px, 3vw, 40px);
+  }
+
+  .big {
+    font-size: clamp(36px, 4.2vw, 60px);
+  }
+
+  table {
+    font-size: 14px;
+  }
+
+  .tile b {
+    font-size: 26px;
+  }
+}
+
+/* Non-blocking hint shown only when the browser itself reports a zoom level
+   other than ~100%. A web page cannot change the browser's zoom setting. */
+.zoom-hint {
+  position: fixed;
+  top: calc(12px + var(--pad-top));
+  left: 50%;
+  z-index: 20;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  padding: 8px 10px 8px 14px;
+  transform: translateX(-50%);
+  border: 1px solid var(--or);
+  background: rgba(18, 18, 18, 0.94);
+  color: #f5f2ec;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  font: 600 13px/1.35 Poppins, system-ui, sans-serif;
+  pointer-events: auto;
+}
+
+.zoom-hint.on {
+  display: flex;
+}
+
+.zoom-hint button {
+  border: 1px solid #767676;
+  background: none;
+  color: inherit;
+  padding: 2px 8px;
+  cursor: pointer;
+  font: 800 16px/1 Poppins, sans-serif;
+}
 
 @media (max-width: 860px) {
   #map {

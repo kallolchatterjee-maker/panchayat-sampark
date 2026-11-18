@@ -26,6 +26,9 @@ button:hover{background:#ff7c26}
 #error.on{display:block}
 .hint{margin:22px 0 0;padding-top:16px;border-top:1px solid #d8d2c6;color:var(--mute);font-size:13px}
 code{background:#e6e0d5;padding:2px 6px;font-weight:800;color:var(--ink)}
+.zoom-hint{position:fixed;top:12px;left:50%;z-index:20;display:none;align-items:center;gap:10px;width:max-content;max-width:calc(100vw - 24px);padding:8px 10px 8px 14px;transform:translateX(-50%);border:1px solid var(--or);background:#141414;color:var(--cream);font:600 13px/1.35 Mukta,sans-serif}
+.zoom-hint.on{display:flex}
+.zoom-hint button{border:1px solid #767676;background:none;color:inherit;padding:2px 8px;cursor:pointer;font:700 16px/1 Mukta,sans-serif}
 @media(max-width:520px){.login{padding:28px 22px}}
 </style>
 </head>
@@ -46,6 +49,7 @@ code{background:#e6e0d5;padding:2px 6px;font-weight:800;color:var(--ink)}
   </form>
   <p class="hint">डेमो लॉगिन: <code>admin</code> / <code>admin123</code></p>
 </main>
+<script src="./js/zoom-check.js"></script>
 <script src="./js/login.js"></script>
 </body>
 </html>
