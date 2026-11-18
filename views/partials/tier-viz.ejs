@@ -1,7 +1,6 @@
 <%
-  // Shared by the three-tier card and the map overlay. The buttons carry no
-  // behaviour here: public/js/main.js wires every [data-tier-viz] group so the
-  // two copies always stay in sync with the map's selected tier.
+  // The three-tier buttons live only in the story card; public/js/main.js
+  // wires them to the map's selected tier and its single district readout.
   const tierVizKey = typeof vizKey === 'string' && vizKey ? vizKey : 'main';
 %>
 <div class="tier-viz" data-tier-viz="<%= tierVizKey %>" role="group" aria-label="तीन स्तरों के निर्वाचित प्रतिनिधि">

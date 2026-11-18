@@ -16,14 +16,6 @@
       </select>
     </div>
 
-    <div class="tier-lookup" data-tier-lookup aria-live="polite">
-      <div class="tier-lookup-head">
-        <b>नक्शे से ज़िला चुनें</b>
-        <button type="button" data-tier-clear hidden>साफ़ करें ×</button>
-      </div>
-      <p class="sm" data-tier-lookup-body>किसी ज़िले पर क्लिक करने पर उसके गाँव, ब्लॉक और ग्राम पंचायत यहाँ दिखेंगे।</p>
-    </div>
-
     <p class="note">विजेता के साथ पहले और दूसरे उपविजेता जोड़ने पर <%= num(vm.tierTotals.reps) %> × 3 = <b class="or"><%= num(vm.tierTotals.withRunnersUp) %></b></p>
     <p class="note">यह कार्ड अभियान डेक का है। डेटासेट में ग्राम पंचायतों की संख्या
       <b><%= num(vm.meta.totals.gps) %></b> और ब्लॉक <b><%= num(vm.meta.totals.blocks) %></b> हैं।

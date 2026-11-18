@@ -2,8 +2,8 @@
 // drill-down panel, village search and the density scatter.
 const boot = JSON.parse(document.getElementById('boot').textContent);
 const [{ createMap }, { createVillageNetwork }] = await Promise.all([
-  import(`./map.js?v=${encodeURIComponent(boot.v)}&ui=18`),
-  import(`./network.js?v=${encodeURIComponent(boot.v)}&ui=18`),
+  import(`./map.js?v=${encodeURIComponent(boot.v)}&ui=19`),
+  import(`./network.js?v=${encodeURIComponent(boot.v)}&ui=19`),
 ]);
 const nf = new Intl.NumberFormat('en-IN');
 const n = (value) => nf.format(Math.round(Number(value) || 0));
@@ -45,38 +45,15 @@ layerGroups.forEach((group) => {
 });
 
 // --------------------------------------------------------- three-tier binding
-// The card chart and the map overlay are two views of one tier selection.
+// The map's #panchayat-readout is the only district readout; the card just
+// owns the tier buttons, so there is no duplicated information on screen.
 const tierById = new Map(boot.tiers.map((tier) => [tier.id, tier]));
-let currentTier = map.tier;
-let selectedDistrict = null;
-const tierLookupBody = document.querySelector('[data-tier-lookup-body]');
-const tierLookupClear = document.querySelector('[data-tier-clear]');
-
-function renderTierLookup() {
-  if (!tierLookupBody) return;
-  const tier = tierById.get(currentTier);
-  if (!selectedDistrict) {
-    tierLookupBody.textContent =
-      'किसी ज़िले पर क्लिक करने पर उसके गाँव, ब्लॉक और ग्राम पंचायत यहाँ दिखेंगे।';
-    if (tierLookupClear) tierLookupClear.hidden = true;
-    return;
-  }
-  const [name, , , villages, , gps, blocks] = selectedDistrict;
-  const value = selectedDistrict[tier.metricIndex] || 0;
-  const blockText = blocks ? `${n(blocks)} ब्लॉक` : 'ब्लॉक-गणना नहीं';
-  tierLookupBody.innerHTML =
-    `<b class="or">${esc(name)}</b> · <b>${n(value)} ${esc(tier.districtMetric)}</b><br>` +
-    `<small class="sm">${n(villages)} गाँव · ${blockText} · ${n(gps)} GP · स्तर: ${esc(tier.label)}</small>`;
-  if (tierLookupClear) tierLookupClear.hidden = false;
-}
 
 function setActiveTier(id) {
   if (!tierById.has(id)) return;
-  currentTier = id;
   document.querySelectorAll('[data-tier-viz] .tier-row').forEach((row) => {
     row.setAttribute('aria-pressed', String(row.dataset.tier === id));
   });
-  renderTierLookup();
 }
 
 // ---------------------------------------- district assembly comparison chart
@@ -142,13 +119,7 @@ document.addEventListener('click', async (event) => {
   map.setTier(row.dataset.tier);
 });
 
-tierLookupClear?.addEventListener('click', () => {
-  map.selectDistrict(null);
-});
-
 map.setOnDistrictSelect((district) => {
-  selectedDistrict = district;
-  renderTierLookup();
   renderAssemblyDistrict(district?.[0] ?? DEFAULT_DISTRICT);
 });
 

@@ -1141,40 +1141,6 @@ td small {
   font-weight: 700;
 }
 
-.tier-lookup {
-  margin: 12px 0;
-  padding: 8px 10px;
-  border: 1px dashed #c9b9a6;
-  background: rgba(255, 228, 156, 0.18);
-}
-
-.tier-lookup-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-}
-
-.tier-lookup-head button {
-  border: 1px solid var(--or-ink);
-  background: none;
-  color: var(--or-ink);
-  font: 600 11px Poppins, sans-serif;
-  cursor: pointer;
-  padding: 1px 6px;
-}
-
-.tier-lookup p {
-  margin: 4px 0 0;
-  font-size: 13px;
-}
-
-.tier-lookup small {
-  display: inline-block;
-  margin-top: 2px;
-}
-
 /* Compact dark readout on the map; the full card owns the three-tier chart. */
 #panchayat-view {
   position: absolute;
