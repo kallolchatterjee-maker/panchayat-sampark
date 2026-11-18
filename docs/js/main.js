@@ -2,8 +2,8 @@
 // drill-down panel, village search and the density scatter.
 const boot = JSON.parse(document.getElementById('boot').textContent);
 const [{ createMap }, { createVillageNetwork }] = await Promise.all([
-  import(`./map.js?v=${encodeURIComponent(boot.v)}&ui=17`),
-  import(`./network.js?v=${encodeURIComponent(boot.v)}&ui=17`),
+  import(`./map.js?v=${encodeURIComponent(boot.v)}&ui=18`),
+  import(`./network.js?v=${encodeURIComponent(boot.v)}&ui=18`),
 ]);
 const nf = new Intl.NumberFormat('en-IN');
 const n = (value) => nf.format(Math.round(Number(value) || 0));
@@ -12,7 +12,37 @@ const pctText = (value) => `${(Number(value) * 100).toFixed(1)}%`;
 const esc = (value) =>
   String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
 
-const map = createMap({ boot });
+// Keep the grouped layer chips honest: the open chevron shows which child
+// layer is active, and choosing one closes the menu again.
+const layerGroups = [...document.querySelectorAll('.layer-group')];
+
+function syncLayerGroups(mode) {
+  layerGroups.forEach((group) => {
+    const activeButton = group.querySelector(`button[data-layer="${mode}"]`);
+    const current = group.querySelector('.layer-group-current');
+    group.classList.toggle('has-active', Boolean(activeButton));
+    if (current) current.textContent = activeButton ? activeButton.textContent.trim() : '';
+    if (activeButton) group.open = false;
+  });
+}
+
+const mapInstance = createMap({ boot });
+const baseSetMode = mapInstance.setMode.bind(mapInstance);
+mapInstance.setMode = (mode, ...args) => {
+  syncLayerGroups(mode);
+  return baseSetMode(mode, ...args);
+};
+const map = mapInstance;
+syncLayerGroups(map.mode || 'campaign');
+
+layerGroups.forEach((group) => {
+  group.addEventListener('toggle', () => {
+    if (!group.open) return;
+    layerGroups.forEach((other) => {
+      if (other !== group) other.open = false;
+    });
+  });
+});
 
 // --------------------------------------------------------- three-tier binding
 // The card chart and the map overlay are two views of one tier selection.

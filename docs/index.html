@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="./css/app.css?v=mwlqmh2g&amp;ui=19">
+<link rel="stylesheet" href="./css/app.css?v=mwlqmh2g&amp;ui=20">
 <script src="./js/zoom-check.js" defer></script>
 </head>
 <body>
@@ -190,16 +190,46 @@
 
   <div class="mapui">
     <div class="layers" role="group" aria-label="नक्शे की परतें">
-      <button type="button" data-layer="campaign" aria-pressed="true">अभियान</button>
-      <button type="button" data-layer="dt" aria-pressed="false">ज़िले · बूथ</button>
-      <button type="button" data-layer="panchayat" aria-pressed="false">पंचायत</button>
-      <button type="button" data-layer="pc" aria-pressed="false">लोकसभा</button>
-      <button type="button" data-layer="ac" aria-pressed="false">विधानसभा</button>
-      <button type="button" data-layer="sd" aria-pressed="false">तहसील</button>
-      <button type="button" data-layer="density" aria-pressed="false">घनत्व</button>
-      <button type="button" data-layer="index" aria-pressed="false">सूचकांक</button>
-      <button type="button" data-layer="villages" aria-pressed="false">गाँव</button>
-      <button type="button" data-layer="network" aria-pressed="false">ग्राम नेटवर्क</button>
+      <button type="button" class="layer-quick" data-layer="campaign" aria-pressed="true">अभियान</button>
+
+      <details class="layer-group" data-group-label="प्रशासनिक">
+        <summary aria-label="प्रशासनिक परतें चुनें">
+          <span class="layer-group-name">प्रशासनिक</span>
+          <span class="layer-group-current"></span>
+          <span class="chev" aria-hidden="true"></span>
+        </summary>
+        <div class="layer-menu" role="group" aria-label="प्रशासनिक परतें">
+          <button type="button" data-layer="dt" aria-pressed="false">ज़िले · बूथ</button>
+          <button type="button" data-layer="pc" aria-pressed="false">लोकसभा</button>
+          <button type="button" data-layer="ac" aria-pressed="false">विधानसभा</button>
+          <button type="button" data-layer="sd" aria-pressed="false">तहसील</button>
+        </div>
+      </details>
+
+      <details class="layer-group" data-group-label="गाँव · पंचायत">
+        <summary aria-label="गाँव और पंचायत परतें चुनें">
+          <span class="layer-group-name">गाँव · पंचायत</span>
+          <span class="layer-group-current"></span>
+          <span class="chev" aria-hidden="true"></span>
+        </summary>
+        <div class="layer-menu" role="group" aria-label="गाँव और पंचायत परतें">
+          <button type="button" data-layer="panchayat" aria-pressed="false">पंचायत</button>
+          <button type="button" data-layer="villages" aria-pressed="false">गाँव</button>
+          <button type="button" data-layer="network" aria-pressed="false">ग्राम नेटवर्क</button>
+        </div>
+      </details>
+
+      <details class="layer-group" data-group-label="विश्लेषण">
+        <summary aria-label="विश्लेषण परतें चुनें">
+          <span class="layer-group-name">विश्लेषण</span>
+          <span class="layer-group-current"></span>
+          <span class="chev" aria-hidden="true"></span>
+        </summary>
+        <div class="layer-menu" role="group" aria-label="विश्लेषण परतें">
+          <button type="button" data-layer="density" aria-pressed="false">घनत्व</button>
+          <button type="button" data-layer="index" aria-pressed="false">सूचकांक</button>
+        </div>
+      </details>
     </div>
   </div>
 
@@ -2127,6 +2157,6 @@
 <script src="./vendor/d3.min.js"></script>
 <script src="./vendor/topojson-client.min.js"></script>
 <script src="./js/static-api.js"></script>
-<script type="module" src="./js/main.js?v=mwlqmh2g&amp;ui=17"></script>
+<script type="module" src="./js/main.js?v=mwlqmh2g&amp;ui=18"></script>
 </body>
 </html>

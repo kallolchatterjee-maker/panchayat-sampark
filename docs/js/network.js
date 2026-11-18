@@ -6,7 +6,7 @@ const INFLUENCE_COLORS = {
 };
 
 const boot = JSON.parse(document.getElementById('boot').textContent);
-const moduleVersion = `${encodeURIComponent(boot.v)}&ui=17`;
+const moduleVersion = `${encodeURIComponent(boot.v)}&ui=18`;
 let districtFeatures = null;
 
 const districtKey = (name) => {

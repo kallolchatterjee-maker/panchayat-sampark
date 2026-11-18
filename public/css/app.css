@@ -357,8 +357,105 @@ textarea {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 4px;
-  max-width: 330px;
+  gap: 6px;
+  max-width: min(560px, calc(100vw - 32px));
+}
+
+/* Shared chip look for the direct button and each dropdown summary. */
+.layers > button,
+.layer-group > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line-ui);
+  background: rgba(12, 12, 12, 0.8);
+  color: #e8e2d8;
+  font: 600 12px Poppins, sans-serif;
+  padding: 6px 9px;
+  cursor: pointer;
+  white-space: nowrap;
+  backdrop-filter: blur(6px);
+}
+
+.layer-group {
+  position: relative;
+}
+
+.layer-group > summary {
+  list-style: none;
+}
+
+.layer-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.layer-group > summary .chev {
+  width: 7px;
+  height: 7px;
+  margin-left: 1px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translate(-1px, -1px);
+  transition: transform 0.2s ease;
+}
+
+.layer-group[open] > summary .chev {
+  transform: rotate(225deg) translate(-1px, -1px);
+}
+
+.layer-group-current {
+  color: var(--or-soft);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.layer-group-current:empty {
+  display: none;
+}
+
+.layer-group.has-active > summary {
+  border-color: var(--or);
+  background: rgba(255, 98, 0, 0.16);
+  color: #fff;
+}
+
+.layer-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 6;
+  display: grid;
+  gap: 2px;
+  min-width: 190px;
+  padding: 6px;
+  border: 1px solid #4a4a4a;
+  background: rgba(12, 12, 12, 0.97);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+}
+
+.layer-menu button {
+  display: block;
+  width: 100%;
+  border: 1px solid transparent;
+  background: none;
+  color: #e8e2d8;
+  font: 600 12px Poppins, sans-serif;
+  text-align: left;
+  padding: 7px 9px;
+  cursor: pointer;
+}
+
+.layer-menu button::before {
+  content: '→';
+  display: inline-block;
+  width: 13px;
+  opacity: 0;
+  color: var(--or);
+}
+
+.layer-menu button[aria-pressed='true']::before {
+  opacity: 1;
 }
 
 .map-bans {
@@ -442,24 +539,32 @@ textarea {
   font: 700 clamp(38px, 4vw, 52px)/1 Poppins, sans-serif;
 }
 
-.layers button {
-  border: 1px solid var(--line-ui);
-  background: rgba(12, 12, 12, 0.78);
-  color: #e8e2d8;
-  font: 600 12px Poppins, sans-serif;
-  padding: 4px 9px;
-  cursor: pointer;
-  backdrop-filter: blur(6px);
-}
-
-.layers button:hover {
+.layers > button:hover,
+.layer-group > summary:hover {
   border-color: var(--or);
   color: #fff;
 }
 
-.layers button[aria-pressed='true'] {
+.layers > button[aria-pressed='true'] {
   background: var(--or);
   border-color: var(--or);
+  color: #121212;
+}
+
+.layer-menu button:hover,
+.layer-menu button:focus-visible {
+  border-color: #6b4529;
+  background: #2a2019;
+  color: #fff;
+}
+
+.layer-menu button[aria-pressed='true'] {
+  border-color: var(--or);
+  background: var(--or);
+  color: #121212;
+}
+
+.layer-menu button[aria-pressed='true']::before {
   color: #121212;
 }
 
@@ -2120,6 +2225,11 @@ body.show-map-bans #map-bans { display: block; }
 
   .layers {
     justify-content: flex-start;
+  }
+
+  .layer-menu {
+    right: auto;
+    left: 0;
   }
 
   .mapfoot {
