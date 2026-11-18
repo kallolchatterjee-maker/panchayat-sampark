@@ -1559,23 +1559,47 @@ input::placeholder {
 /* ------------------------------------------------------------- hero BANs */
 .ban-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  /* Two columns keep every headline number on one line in the story card.
+     Four columns are only used below when the card is genuinely wide. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
   margin: 14px 0 10px;
 }
 .ban {
+  min-width: 0;
   background: rgba(255, 98, 0, 0.08);
   border-left: 3px solid var(--or);
   padding: 8px 10px;
 }
+.ban b,
+.gauge-head b,
+.map-ban b {
+  overflow-wrap: normal;
+  word-break: keep-all;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
 .ban b {
   display: block;
-  font: 700 30px/1 Poppins, sans-serif;
+  font: 700 clamp(24px, 2.6vw, 34px)/1 Poppins, sans-serif;
+  letter-spacing: -0.02em;
   color: var(--or);
 }
 .ban span {
+  display: block;
   font-size: 12px;
+  line-height: 1.25;
   color: #b7afa4;
+}
+
+/* Only widen to four columns once the card can truly fit the numbers. */
+@media (min-width: 1600px) {
+  .ban-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .ban b {
+    font-size: clamp(26px, 1.75vw, 32px);
+  }
 }
 .progress-gauge {
   margin: 10px 0 14px;
@@ -1585,8 +1609,9 @@ input::placeholder {
 }
 .gauge-head {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 10px;
+  gap: 4px 10px;
   align-items: baseline;
   font-size: 13px;
   color: #cfc7ba;
@@ -1989,11 +2014,11 @@ body.show-map-bans #map-bans { display: block; }
 /* Tighter card/table typography for medium desktops where 42vw was cramped. */
 @media (min-width: 861px) and (max-width: 1400px) {
   .steps {
-    width: min(46vw, 660px);
+    width: min(48vw, 700px);
   }
 
   #map {
-    width: calc(100vw - min(46vw, 660px));
+    width: calc(100vw - min(48vw, 700px));
   }
 
   .step {
