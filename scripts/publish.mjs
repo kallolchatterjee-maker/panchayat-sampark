@@ -48,8 +48,16 @@ function git(args, { allowFailure = false } = {}) {
 }
 
 async function main() {
-  if (!existsSync(join(ROOT, 'docs', 'index.html'))) {
-    throw new Error('docs/ is missing — run npm run build:static first.');
+  const required = [
+    'docs/index.html',
+    'docs/login.html',
+    'docs/data/districts.topo.json',
+    'docs/data/village-grid.json',
+    'docs/api/progress.json',
+  ];
+  const missing = required.filter((path) => !existsSync(join(ROOT, path)));
+  if (missing.length) {
+    throw new Error(`Static snapshot is incomplete (${missing.join(', ')}). Run npm run build:static first.`);
   }
 
   let exists = true;
@@ -76,7 +84,14 @@ async function main() {
   // Keep the token out of the committed remote config.
   git(['remote', 'add', 'origin', `https://x-access-token:${token}@github.com/${owner}/${repo}.git`]);
   git(['add', '-A']);
-  const staged = git(['diff', '--cached', '--name-only']).stdout.trim();
+  // Guard against .gitignore rules accidentally swallowing published assets
+  // (e.g. a case-insensitive `Data/` rule hiding docs/data/ on Windows).
+  for (const path of required) {
+    if (git(['ls-files', '--error-unmatch', path], { allowFailure: true }).status !== 0) {
+      throw new Error(`${path} is not tracked by git — check .gitignore`);
+    }
+  }
+  const staged = git(['diff', '--cached', '--name-only']).stdout.trim().split('\n').filter(Boolean);
   const committing = git(['diff', '--cached', '--quiet'], { allowFailure: true }).status === 1;
   if (committing) {
     git(['commit', '-m', 'Add Panchayat Sampark static site with admin login']);
@@ -94,7 +109,7 @@ async function main() {
     method: pagesExist ? 'PUT' : 'POST',
     body: JSON.stringify({ source: { branch: 'main', path: '/docs' } }),
   });
-  console.log(`Pushed ${staged.split('\n').length} file(s) to main.`);
+  console.log(`Pushed ${staged.length} staged file(s) to main.`);
   console.log(`GitHub Pages → https://${owner.toLowerCase()}.github.io/${repo}/`);
   console.log('Login: admin / admin123');
 }
