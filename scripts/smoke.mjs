@@ -95,12 +95,27 @@ try {
   check('district rows carry the campaign success metric', bootPayload.districts?.length === 75 && bootPayload.districts.every((row) => Number.isFinite(row[7])));
   check('campaign success values stay between 0 and 1', bootPayload.districts.every((row) => row[7] >= 0 && row[7] <= 1));
 
+  // The Lok Sabha filter must be projected from the supplied parliament GeoJSON,
+  // not from a hand-written list or the campaign deck.
+  const parliamentRaw = JSON.parse(
+    readFileSync(new URL('../Data/UTTAR PRADESH_parliament.geojson', import.meta.url), 'utf8'),
+  );
+  const sourcePcs = (parliamentRaw.features || []).map((feature) => ({
+    no: Number(feature.properties.PC_NO),
+    name: String(feature.properties.PC_NAME || '').trim(),
+  }));
+  check('parliament GeoJSON has 80 unique seats', sourcePcs.length === 80 && new Set(sourcePcs.map((pc) => pc.no)).size === 80);
+  check('Lok Sabha filter comes from the parliament GeoJSON', bootPayload.pcOptions?.length === sourcePcs.length && sourcePcs.every((pc) => bootPayload.pcOptions.some((row) => row[0] === pc.no && row[1] === pc.name)));
+  check('AC rows carry PC_NO for the filter', bootPayload.acs.length === 403 && bootPayload.acs.every((row) => Number.isFinite(row[11]) && row[11] > 0));
+  check('Lok Sabha filter controls are rendered', (html.match(/data-pc-filter/g) || []).length >= 2 && html.includes('UTTAR PRADESH_parliament.geojson') && html.includes('id="pc-filter-status"'));
+
   const mainSource = readFileSync(new URL('../public/js/main.js', import.meta.url), 'utf8');
   const mapSource = readFileSync(new URL('../public/js/map.js', import.meta.url), 'utf8');
   const networkSource = readFileSync(new URL('../public/js/network.js', import.meta.url), 'utf8');
   check('campaign progress drives the choropleth', mapSource.includes('campaignScale') && mapSource.includes('setProgress') && mainSource.includes('map.setProgress('));
   check('village network dataviz is still wired', mainSource.includes('createVillageNetwork') && networkSource.includes('network-cells') && networkSource.includes('network-edges') && networkSource.includes('renderInfluenceDetail'));
   check('village network controls and influence panel are rendered', ['network-district', 'network-block', 'network-status', 'network-svg', 'influence-panel'].every((id) => html.includes(`id="${id}"`)));
+  check('Lok Sabha filter is wired to the map and AC list', mapSource.includes('selectPc') && mapSource.includes('pc-match') && mainSource.includes('map.selectPc(') && mainSource.includes('setOnPcSelect'));
   check('no unresolved EJS markers', !html.includes('<%'));
 
   const cached = await get('/');

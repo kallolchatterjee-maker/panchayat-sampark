@@ -77,6 +77,7 @@ export function createMap({ boot }) {
     mode: 'campaign',
     tier: defaultTier,
     district: null,
+    pc: null,
     selected: null,
     hq: false,
     // 0–1, refreshed from /api/progress by main.js. Controls choropleth opacity.
@@ -128,6 +129,7 @@ export function createMap({ boot }) {
   let onAcClick = () => {};
   let onVillageClick = () => {};
   let onDistrictSelect = () => {};
+  let onPcSelect = () => {};
 
   // ------------------------------------------------------------------ tooltip
   function showTip(event, text) {
@@ -261,7 +263,17 @@ export function createMap({ boot }) {
           `${d.properties.PC_NAME || 'लोकसभा'} · ${fmt(agg?.[2] ?? 0)} बूथ`,
         );
       })
-      .on('mouseleave', hideTip);
+      .on('mouseleave', hideTip)
+      .on('click', (event, d) => {
+        if (state.mode !== 'pc') return;
+        event.stopPropagation();
+        selectPc(Number(d.properties.PC_NO), { toggle: true });
+      })
+      .on('keydown', (event, d) => {
+        if (state.mode !== 'pc' || (event.key !== 'Enter' && event.key !== ' ')) return;
+        event.preventDefault();
+        selectPc(Number(d.properties.PC_NO), { toggle: true });
+      });
 
     layers.assembly
       .selectAll('path')
@@ -274,12 +286,16 @@ export function createMap({ boot }) {
         showTip(
           event,
           `${ac?.[1] ?? d.properties.AC_NAME} · ${ac?.[2] ?? d.properties.DIST_NAME} · ` +
-            `${fmt(ac?.[3] ?? 0)} बूथ · ${fmt(ac?.[4] ?? 0)} गाँव`,
+            `${fmt(ac?.[3] ?? 0)} बूथ · ${fmt(ac?.[4] ?? 0)} गाँव\nक्लिक: गाँव नक्शा खोलेगा`,
         );
       })
       .on('mouseleave', hideTip)
       .on('click', (event, d) => {
-        if (state.mode !== 'drill') return;
+        // In the Lok Sabha view the outlines belong to the PC filter; in the
+        // two district views they are hidden. Everywhere else, clicking an AC
+        // opens its village map (drill-down).
+        if (state.mode === 'pc' || state.mode === 'campaign' || state.mode === 'panchayat') return;
+        event.stopPropagation();
         const no = Number(d.properties.AC_NO);
         onAcClick(no);
       })
@@ -528,6 +544,9 @@ export function createMap({ boot }) {
     } else if (mode === 'pc') {
       title = 'बूथ प्रति लोकसभा';
       items = quantileItems(pcScale, (v) => fmt(v));
+      if (state.pc) {
+        items.push(['#ffb067', `चुना: ${escHtml(pcAgg.get(state.pc)?.[1] ?? state.pc)}`]);
+      }
     } else if (mode === 'ac') {
       title = 'बूथ प्रति विधानसभा';
       items = quantileItems(acBoothScale, (v) => fmt(v));
@@ -595,7 +614,10 @@ export function createMap({ boot }) {
         ? `<b>${escHtml(agg[0])}</b> · ${fmt(agg[tier.metricIndex] || 0)} ${tier.districtMetric} · ${tier.label}`
         : `<b>${fmt(totals.districts)}</b> ज़िले · स्तर: ${tier.label} · ${tier.metricLabel} · ज़िला चुनने पर क्लिक करें`;
     } else if (mode === 'pc') {
-      statEl.innerHTML = `<b>${fmt(totals.pc)}</b> लोकसभा · <b>${fmt(totals.acs)}</b> विधानसभा`;
+      const row = state.pc ? pcAgg.get(state.pc) : null;
+      statEl.innerHTML = row
+        ? `<b>${escHtml(row[1])}</b> · ${fmt(row[4])} विधानसभा · ${fmt(row[2])} बूथ · ${fmt(row[3])} गाँव · सूची फ़िल्टर`
+        : `<b>${fmt(totals.pc)}</b> लोकसभा · <b>${fmt(totals.acs)}</b> विधानसभा`;
     } else if (mode === 'ac') {
       statEl.innerHTML = `<b>${fmt(totals.acs)}</b> विधानसभा · मीडियन <b>${fmt(medianBooths)}</b> बूथ · ड्रिल-डाउन अनुभाग में क्लिक करें`;
     } else if (mode === 'density') {
@@ -675,6 +697,7 @@ export function createMap({ boot }) {
     state.path = d3.geoPath(state.projection).pointRadius(2.6);
 
     drawBase();
+    renderPcSelection();
     drawSubdistricts();
     drawGrid();
     drawHq();
@@ -716,6 +739,11 @@ export function createMap({ boot }) {
       .selectAll('path')
       .attr('tabindex', districtPick ? 0 : null)
       .attr('role', districtPick ? 'button' : null);
+    layers.parliament
+      .selectAll('path')
+      .attr('tabindex', mode === 'pc' ? 0 : null)
+      .attr('role', mode === 'pc' ? 'button' : null);
+    renderPcSelection();
 
     if (mode === 'sd') await ensureSubdistricts();
     if (mode === 'villages') await ensureGrid();
@@ -801,6 +829,42 @@ export function createMap({ boot }) {
       `<br><small>${fmt(agg[2] || 0)} गाँव · ${blocks} · ${fmt(agg[5] || 0)} GP</small>`;
   }
 
+  // Keep the parliament outlines and the ACs they contain in sync with the
+  // shared Lok Sabha filter (the selectors live outside the map).
+  function renderPcSelection() {
+    layers.parliament
+      .selectAll('path')
+      .classed('on', (d) => Boolean(state.pc) && Number(d.properties.PC_NO) === state.pc)
+      .classed('dim', (d) => Boolean(state.pc) && Number(d.properties.PC_NO) !== state.pc);
+    layers.assembly
+      .selectAll('path')
+      .classed('pc-match', (d) => {
+        if (!state.pc) return false;
+        const ac = acMeta.get(Number(d.properties.AC_NO));
+        return Number(ac?.[11]) === state.pc;
+      });
+  }
+
+  function selectPc(no, { toggle = false, fly = true } = {}) {
+    const numeric = Number(no);
+    const valid = Number.isFinite(numeric) && pcAgg.has(numeric);
+    state.pc = valid && (!toggle || numeric !== state.pc) ? numeric : null;
+    renderPcSelection();
+    if (state.mode === 'pc') {
+      renderLegend(state.mode);
+      renderStat(state.mode);
+    }
+    onPcSelect(state.pc ? String(state.pc) : '');
+
+    if (!fly) return;
+    const feature = state.pc
+      ? cache.features.parliament.features.find(
+          (f) => Number(f.properties.PC_NO) === state.pc,
+        )
+      : null;
+    flyTo(feature ?? null, 700);
+  }
+
   function selectDistrict(name, { toggle = true, fly = true } = {}) {
     const key = districtKeyOf(name);
     const agg = districtAgg.get(key);
@@ -863,6 +927,13 @@ export function createMap({ boot }) {
     const acNo = Number(no);
     if (!Number.isFinite(acNo) || !cache.features.assembly) return;
     state.selected = acNo;
+    // Opening an AC is also a Lok Sabha choice: keep the shared filter in sync.
+    const pcNo = Number(acMeta.get(acNo)?.[11]);
+    if (Number.isFinite(pcNo) && pcNo > 0 && pcNo !== state.pc) {
+      state.pc = pcNo;
+      renderPcSelection();
+      onPcSelect(String(pcNo));
+    }
     layers.assembly
       .selectAll('path')
       .classed('on', (d) => Number(d.properties.AC_NO) === acNo);
@@ -914,6 +985,11 @@ export function createMap({ boot }) {
           (f) => districtKeyOf(f.properties.dtname) === state.district,
         );
         if (feature) flyTo(feature);
+      } else if (state.mode === 'pc' && state.pc) {
+        const feature = cache.features.parliament.features.find(
+          (f) => Number(f.properties.PC_NO) === state.pc,
+        );
+        if (feature) flyTo(feature);
       } else {
         flyTo(null);
       }
@@ -953,6 +1029,7 @@ export function createMap({ boot }) {
     setTier,
     setProgress,
     selectDistrict,
+    selectPc,
     focusAc,
     highlightVillage,
     setOnAcClick(fn) {
@@ -963,6 +1040,9 @@ export function createMap({ boot }) {
     },
     setOnDistrictSelect(fn) {
       onDistrictSelect = fn;
+    },
+    setOnPcSelect(fn) {
+      onPcSelect = fn;
     },
     get mode() {
       return state.mode;

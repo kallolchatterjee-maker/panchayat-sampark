@@ -102,6 +102,13 @@ village-boundary metrics. Selecting a row opens the AC drill-down and focuses
 the map. Workbook GP summaries remain at district/block level because they do
 not include an AC mapping.
 
+The Lok Sabha filter is projected directly from `Data/UTTAR PRADESH_parliament.geojson`
+(`PC_NO` / `PC_NAME`) into both the map control and the drill-down card. Choosing a
+seat (or clicking a parliament polygon) focuses that constituency, highlights the
+ACs it contains, and narrows the AC dropdown to those constituencies; opening an
+AC or searching for a village keeps the filter in sync. The source file is only
+read at build/store load time — the browser receives a compact 80-row list.
+
 ## Data caveats (shown in the UI, not hidden)
 
 - **The village ↔ booth join is approximate.** Booth rows carry transliterated

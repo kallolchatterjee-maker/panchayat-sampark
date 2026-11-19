@@ -2,8 +2,8 @@
 // drill-down panel, village search and the density scatter.
 const boot = JSON.parse(document.getElementById('boot').textContent);
 const [{ createMap }, { createVillageNetwork }] = await Promise.all([
-  import(`./map.js?v=${encodeURIComponent(boot.v)}&ui=19`),
-  import(`./network.js?v=${encodeURIComponent(boot.v)}&ui=19`),
+  import(`./map.js?v=${encodeURIComponent(boot.v)}&ui=21`),
+  import(`./network.js?v=${encodeURIComponent(boot.v)}&ui=21`),
 ]);
 const nf = new Intl.NumberFormat('en-IN');
 const n = (value) => nf.format(Math.round(Number(value) || 0));
@@ -137,6 +137,86 @@ motionQuery.addEventListener?.('change', (event) => {
 });
 let villageNetwork = null;
 
+// -------------------------------------------------------- Lok Sabha filter
+// The option list is built from Data/UTTAR PRADESH_parliament.geojson by the
+// view model; boot.acs[11] carries each AC's PC_NO for the narrow list.
+const pcFilterSelects = [...document.querySelectorAll('[data-pc-filter]')];
+const pcFilterStatus = document.getElementById('pc-filter-status');
+const pcRows = new Map();
+for (const row of boot.pcOptions || boot.pc || []) {
+  const no = Number(row[0]);
+  if (!Number.isFinite(no) || pcRows.has(no)) continue;
+  pcRows.set(no, {
+    no,
+    name: row[1],
+    acCount: Number(row[2]) || 0,
+    booths: Number(row[3]) || 0,
+  });
+}
+const acsByPc = new Map();
+for (const ac of boot.acs) {
+  const pcNo = Number(ac[11]);
+  if (!pcNo) continue;
+  if (!acsByPc.has(pcNo)) acsByPc.set(pcNo, []);
+  acsByPc.get(pcNo).push(ac);
+}
+const allAcOptions = [...boot.acs].sort((a, b) =>
+  String(a[1] || '').localeCompare(String(b[1] || ''), 'en'),
+);
+let currentAc = null;
+
+const acOptionHtml = (ac) =>
+  `<option value="${ac[0]}">${esc(ac[1])} · ${esc(ac[2])} · ${n(ac[3])} बूथ</option>`;
+
+function renderFilteredAcOptions(pcNo, keepAc) {
+  const rows = pcNo
+    ? [...(acsByPc.get(pcNo) || [])].sort((a, b) =>
+        String(a[1] || '').localeCompare(String(b[1] || ''), 'en'),
+      )
+    : allAcOptions;
+  const keep = keepAc == null || keepAc === '' ? null : Number(keepAc);
+  const kept = keep != null && rows.some((ac) => ac[0] === keep);
+  select.innerHTML =
+    '<option value="">— विधानसभा चुनें —</option>' + rows.map(acOptionHtml).join('');
+  if (kept) select.value = String(keep);
+  return kept;
+}
+
+function applyPcFilter(value, { fromMap = false, fly = true, setMode = false } = {}) {
+  const numeric = value === '' || value == null ? NaN : Number(value);
+  const pcNo = Number.isFinite(numeric) && pcRows.has(numeric) ? numeric : null;
+  const row = pcNo ? pcRows.get(pcNo) : null;
+  pcFilterSelects.forEach((el) => {
+    el.value = pcNo ? String(pcNo) : '';
+  });
+  if (pcFilterStatus) {
+    pcFilterStatus.textContent = row
+      ? `PC ${row.no} · ${row.name}: ${n(row.acCount)} विधानसभाएँ, ${n(row.booths)} बूथ। सूची इसी लोकसभा तक सीमित है।`
+      : `सभी लोकसभा · ${n(pcRows.size)} सीटें दिखाई जा रही हैं।`;
+  }
+
+  const keepAc = select.value;
+  const kept = renderFilteredAcOptions(pcNo, keepAc);
+  if (keepAc && !kept) {
+    currentAc = null;
+    panel.setAttribute('aria-busy', 'false');
+    panel.innerHTML = '<p class="loading">लोकसभा फ़िल्टर बदल गया। विधानसभा चुनें।</p>';
+    drillStatus.textContent = 'लोकसभा फ़िल्टर बदल गया। विधानसभा चुनें।';
+  }
+
+  if (!fromMap) {
+    map.ready.then(async () => {
+      if (setMode && map.mode !== 'pc') await map.setMode('pc');
+      map.selectPc(pcNo, { fly, toggle: false });
+    });
+  }
+}
+
+pcFilterSelects.forEach((el) => {
+  el.addEventListener('change', () => applyPcFilter(el.value, { setMode: true, fly: true }));
+});
+map.setOnPcSelect((pcNo) => applyPcFilter(pcNo, { fromMap: true }));
+
 // ---------------------------------------------------------- Amethi panchayat
 const panchayatExplorer = document.querySelector('[data-panchayat-explorer]');
 if (panchayatExplorer) {
@@ -171,9 +251,6 @@ amethiChart?.addEventListener('click', (event) => {
   if (!button || !amethiChart.contains(button)) return;
 
   showAc(button.dataset.amethiAc, { focusPanel: true });
-  document.getElementById('drill').scrollIntoView({
-    behavior: reducedMotion ? 'auto' : 'smooth',
-  });
 });
 
 // ---------------------------------------------------------------- scroll → mode
@@ -215,7 +292,6 @@ function onScroll() {
 
 // ------------------------------------------------------------------- drilldown
 const detailCache = new Map();
-let currentAc = null;
 let villageRows = new Map();
 
 async function getDetail(no) {
@@ -372,13 +448,15 @@ async function getBoothGrades(acNo) {
   }
 }
 
-async function showAc(no, { fly = true, focusPanel = false } = {}) {
+async function showAc(no, { fly = true, focusPanel = false, scrollToVillages = true } = {}) {
   const acNo = Number(no);
   if (!Number.isFinite(acNo)) return;
+  // Make sure the AC is present in the narrowed dropdown before selecting it.
+  const chosenAc = boot.acs.find((ac) => ac[0] === acNo);
+  if (chosenAc?.[11]) applyPcFilter(String(chosenAc[11]), { fromMap: true, fly: false });
   currentAc = acNo;
   select.value = String(acNo);
   // Keep the comparison card on the district of whichever AC is opened.
-  const chosenAc = boot.acs.find((ac) => ac[0] === acNo);
   if (chosenAc) renderAssemblyDistrict(chosenAc[2]);
   panel.setAttribute('aria-busy', 'true');
   drillStatus.textContent = 'विधानसभा लोड हो रही है…';
@@ -387,6 +465,12 @@ async function showAc(no, { fly = true, focusPanel = false } = {}) {
   await map.ready;
   if (map.mode !== 'drill') await map.setMode('drill');
   if (fly) await map.focusAc(acNo);
+  // Selecting an AC should visibly lead the reader to the village map card.
+  if (scrollToVillages) {
+    document.getElementById('drill')?.scrollIntoView({
+      behavior: reducedMotion ? 'auto' : 'smooth',
+    });
+  }
 
   try {
     const [detail, gradeInfo] = await Promise.all([getDetail(acNo), getBoothGrades(acNo)]);
@@ -395,7 +479,7 @@ async function showAc(no, { fly = true, focusPanel = false } = {}) {
       panel.setAttribute('aria-busy', 'false');
       drillStatus.textContent =
         `${detail.ac.name}, ${detail.ac.district}: ${n(detail.ac.booths)} बूथ, ` +
-        `${n(detail.ac.villages)} गाँव लोड हुए।`;
+        `${n(detail.ac.villages)} गाँव लोड हुए · गाँव नक्शा तैयार।`;
       if (focusPanel) panel.querySelector('#panel-title')?.focus({ preventScroll: true });
     }
   } catch (error) {

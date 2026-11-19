@@ -3,6 +3,20 @@
     <p class="k"><span lang="en">DRILL-DOWN · AC → VILLAGE → BOOTH</span></p>
     <h2>विधानसभा से <span class="or">गाँव तक</span></h2>
 
+    <div class="pc-filter">
+      <div class="pc-filter-head">
+        <label for="pc-select">लोकसभा फ़िल्टर</label>
+        <small lang="en">स्रोत: Data/UTTAR PRADESH_parliament.geojson</small>
+      </div>
+      <select id="pc-select" data-pc-filter>
+        <option value="">सभी लोकसभा · <%= num(vm.pcOptions.length) %> सीटें</option>
+        <% vm.pcOptions.forEach((pc) => { %>
+        <option value="<%= pc.no %>">PC <%= pc.no %> · <%= pc.name %> · <%= num(pc.acCount) %> विधानसभा</option>
+        <% }) %>
+      </select>
+      <p class="sm pc-filter-status" id="pc-filter-status" role="status" aria-live="polite">सभी लोकसभा दिखाई जा रही हैं।</p>
+    </div>
+
     <label class="sr" for="sel">विधानसभा चुनें</label>
     <select id="sel">
       <option value="">— विधानसभा चुनें —</option>

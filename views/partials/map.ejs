@@ -81,6 +81,16 @@
         </div>
       </details>
     </div>
+
+    <div class="map-pc-filter" role="group" aria-label="लोकसभा फ़िल्टर">
+      <label class="sr" for="map-pc-filter">लोकसभा फ़िल्टर</label>
+      <select id="map-pc-filter" data-pc-filter>
+        <option value="">लोकसभा: सभी</option>
+        <% vm.pcOptions.forEach((pc) => { %>
+        <option value="<%= pc.no %>">PC <%= pc.no %> · <%= pc.name %></option>
+        <% }) %>
+      </select>
+    </div>
   </div>
 
   <div id="network-view" aria-hidden="true">

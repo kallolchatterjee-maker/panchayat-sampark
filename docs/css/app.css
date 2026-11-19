@@ -212,6 +212,26 @@ textarea {
 [data-m='pc'] .dt {
   stroke: #2e2e2e;
 }
+[data-m='pc'] .pc {
+  cursor: pointer;
+  transition: stroke 0.3s, opacity 0.3s;
+}
+[data-m='pc'] .pc.dim {
+  opacity: 0.16;
+}
+[data-m='pc'] .pc.on {
+  stroke: #ffd0a8;
+  stroke-width: 2.2;
+  opacity: 1;
+}
+[data-m='pc'] .ac {
+  opacity: 0.14;
+}
+[data-m='pc'] .ac.pc-match {
+  opacity: 1;
+  stroke: #ffb067;
+  stroke-width: 1.4;
+}
 [data-m='ac'] .ac,
 [data-m='density'] .ac,
 [data-m='index'] .ac {
@@ -456,6 +476,57 @@ textarea {
 
 .layer-menu button[aria-pressed='true']::before {
   opacity: 1;
+}
+
+/* Lok Sabha filter: a compact map control plus the full drill-down control. */
+.map-pc-filter {
+  align-self: flex-end;
+  max-width: min(280px, calc(100vw - 32px));
+}
+
+.map-pc-filter select {
+  width: 100%;
+  border: 1px solid var(--line-ui);
+  background: rgba(12, 12, 12, 0.86);
+  color: #e8e2d8;
+  font: 600 12px Poppins, sans-serif;
+  padding: 6px 9px;
+  backdrop-filter: blur(6px);
+}
+
+.pc-filter {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--or);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.pc-filter-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 10px;
+}
+
+.pc-filter-head label {
+  font: 600 13px Poppins, sans-serif;
+}
+
+.pc-filter-head small {
+  color: #a9a29a;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.pc-filter select {
+  width: 100%;
+  margin-top: 7px;
+}
+
+.pc-filter-status {
+  margin: 6px 0 0;
+  color: #a9a29a;
 }
 
 .map-bans {
@@ -2125,6 +2196,11 @@ body.show-map-bans #map-bans { display: block; }
 
   .layers {
     justify-content: flex-start;
+  }
+
+  .map-pc-filter {
+    align-self: flex-start;
+    max-width: calc(100vw - 20px);
   }
 
   .layer-menu {
