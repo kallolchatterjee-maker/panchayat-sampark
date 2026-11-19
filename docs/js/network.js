@@ -326,11 +326,10 @@ export function createVillageNetwork({ onVillageClick }) {
       .selectAll('path')
       .data(boundaries)
       .join('path')
-      .attr('class', 'network-region')
-      .attr('d', path)
-      .attr('fill', (feature) => (districtKey(feature.properties.dtname) === selectedKey ? '#1a1410' : 'none'))
-      .attr('stroke', (feature) => (districtKey(feature.properties.dtname) === selectedKey ? '#8a3d10' : '#3a2a20'))
-      .attr('stroke-width', (feature) => (districtKey(feature.properties.dtname) === selectedKey ? 0.9 : 0.55));
+      .attr('class', (feature) =>
+        districtKey(feature.properties.dtname) === selectedKey ? 'network-region selected' : 'network-region',
+      )
+      .attr('d', path);
 
     stage
       .append('g')

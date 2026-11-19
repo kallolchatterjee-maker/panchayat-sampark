@@ -35,10 +35,42 @@
   --focus-outer: #121212;
   --track: #34291f;
   --accent-ui: #ffb067;
+
+  /* Story cards carry the `dark` class for layout/history, but their colours
+     follow the active theme instead of forcing a dark island in light mode. */
+  --story-bg: var(--ink-2);
+  --story-text: #fff;
+  --story-muted: #a9a29a;
+  --story-accent: var(--or);
+  --story-border: var(--line);
+  --story-heading-line: #767676;
+  --story-row-line: #2e2c29;
+  --story-note: #d8a678;
+  --story-source-line: #333;
+  --story-panel-bg: #161412;
+  --story-panel-border: #3a2a20;
+  --story-panel-track: #2b241d;
+  --story-panel-text: #cfc7ba;
+  --story-panel-strong: #fff;
+  --story-panel-meta: #ffb067;
+
+  /* Form controls and charts appear in both light and dark story cards. */
+  --control-bg: #000;
+  --control-text: #fff;
+  --control-muted: #a9a29a;
+  --control-hover: #262626;
+  --list-bg: #181818;
+  --list-text: #eee;
+  --control-accent: var(--or);
+  --chart-text: #fff;
+  --chart-axis: #a9a29a;
+  --chart-line: #4a4641;
+  --chart-grid: #2e2c29;
+  --chart-label: #cfc7ba;
+  --bar-track: #2c2a27;
 }
 
-/* Light theme: warm neutral surfaces, dark ink, and orange only as an accent.
-   --ink-2 stays dark because the "dark" story cards remain intentional accents. */
+/* Light theme: warm neutral surfaces, dark ink, and orange only as an accent. */
 [data-theme='light'] {
   --cream: #ffffff;
   --mute: #5b544b;
@@ -59,6 +91,36 @@
   --focus-outer: #ffffff;
   --track: #cfc7bb;
   --accent-ui: #a83a00;
+
+  --story-bg: #ffffff;
+  --story-text: #1a1a1a;
+  --story-muted: #5b544b;
+  --story-accent: #a83a00;
+  --story-border: #8a8175;
+  --story-heading-line: #8a8175;
+  --story-row-line: #d8d2c6;
+  --story-note: #8a3c0d;
+  --story-source-line: #d8d2c6;
+  --story-panel-bg: #fff8ef;
+  --story-panel-border: #8a8175;
+  --story-panel-track: #cfc7bb;
+  --story-panel-text: #5b544b;
+  --story-panel-strong: #1a1a1a;
+  --story-panel-meta: #a83a00;
+
+  --control-bg: #ffffff;
+  --control-text: #1a1a1a;
+  --control-muted: #5b544b;
+  --control-hover: #fff4e8;
+  --list-bg: #ffffff;
+  --list-text: #1a1a1a;
+  --control-accent: #a83a00;
+  --chart-text: #1a1a1a;
+  --chart-axis: #5b544b;
+  --chart-line: #8a8175;
+  --chart-grid: #d8d2c6;
+  --chart-label: #1a1a1a;
+  --bar-track: #d8d2c6;
 }
 
 * {
@@ -131,9 +193,9 @@ td small {
 #map button:focus-visible,
 #map select:focus-visible,
 #map a:focus-visible {
-  outline: 3px solid #ffd21f;
+  outline: 3px solid var(--focus-ring);
   outline-offset: 2px;
-  box-shadow: 0 0 0 2px #121212;
+  box-shadow: 0 0 0 2px var(--focus-outer);
 }
 
 .skip-link {
@@ -820,9 +882,9 @@ textarea {
 }
 
 .dark {
-  background: var(--ink-2);
-  color: #fff;
-  border: 1px solid var(--line);
+  background: var(--story-bg);
+  color: var(--story-text);
+  border: 1px solid var(--story-border);
   border-top: 6px solid var(--or);
 }
 
@@ -835,7 +897,7 @@ textarea {
 }
 
 .dark .k {
-  color: var(--or);
+  color: var(--story-accent);
 }
 
 h1,
@@ -859,7 +921,7 @@ h3 {
 }
 
 .dark .or {
-  color: var(--or);
+  color: var(--story-accent);
 }
 
 .big {
@@ -868,7 +930,12 @@ h3 {
 }
 
 .dark .big {
-  color: var(--or);
+  color: var(--story-accent);
+}
+
+.big-sub {
+  font: 700 20px Poppins, sans-serif;
+  color: var(--story-muted);
 }
 
 .sm {
@@ -877,7 +944,7 @@ h3 {
 }
 
 .dark .sm {
-  color: #a9a29a;
+  color: var(--story-muted);
 }
 
 p {
@@ -916,7 +983,7 @@ caption {
 }
 
 .dark caption {
-  color: #a9a29a;
+  color: var(--story-muted);
 }
 
 th {
@@ -928,7 +995,7 @@ th {
 }
 
 .dark th {
-  border-bottom-color: #767676;
+  border-bottom-color: var(--story-heading-line);
 }
 
 th:last-child {
@@ -943,7 +1010,7 @@ td {
 }
 
 .dark td {
-  border-bottom-color: #2e2c29;
+  border-bottom-color: var(--story-row-line);
 }
 
 td:last-child {
@@ -974,7 +1041,7 @@ td small {
 }
 
 .dark .tile {
-  border-left-color: var(--or);
+  border-left-color: var(--story-accent);
 }
 
 .tile b {
@@ -989,7 +1056,7 @@ td small {
 }
 
 .dark .tile b {
-  color: var(--or);
+  color: var(--story-accent);
 }
 
 .amethi-ac-chart {
@@ -1330,7 +1397,7 @@ td small {
 }
 
 .dark .tile span {
-  color: #a9a29a;
+  color: var(--story-muted);
 }
 
 /* --------------------------------------------------------------- histogram */
@@ -1388,7 +1455,7 @@ td small {
 .chart {
   width: 100%;
   margin: 12px 0 4px;
-  color: #fff;
+  color: var(--chart-text);
 }
 
 .chart svg {
@@ -1399,16 +1466,16 @@ td small {
 
 .chart .axis line,
 .chart .axis path {
-  stroke: #4a4641;
+  stroke: var(--chart-line);
 }
 
 .chart .axis text {
-  fill: #a9a29a;
+  fill: var(--chart-axis);
   font: 400 10px Poppins, sans-serif;
 }
 
 .chart .gridline {
-  stroke: #2e2c29;
+  stroke: var(--chart-grid);
 }
 
 .chart .dot {
@@ -1417,7 +1484,7 @@ td small {
 }
 
 .chart .lbl {
-  fill: #cfc7ba;
+  fill: var(--chart-label);
   font: 600 10px Poppins, sans-serif;
 }
 
@@ -1435,7 +1502,7 @@ td small {
 
 .comp .bar {
   height: 8px;
-  background: #2c2a27;
+  background: var(--bar-track);
   margin-top: 3px;
 }
 
@@ -1448,8 +1515,8 @@ td small {
 /* ---------------------------------------------------------------- drilldown */
 select {
   width: 100%;
-  background: #000;
-  color: #fff;
+  background: var(--control-bg);
+  color: var(--control-text);
   border: 1px solid var(--line-ui);
   padding: 8px;
   font: 600 15px Poppins, sans-serif;
@@ -1462,19 +1529,16 @@ select {
 
 .search input {
   width: 100%;
-  background: #000;
-  color: #fff;
+  background: var(--control-bg);
+  color: var(--control-text);
   border: 1px solid var(--line-ui);
   padding: 8px 10px;
   font: 400 15px Poppins, sans-serif;
 }
 
-input::placeholder {
-  color: #a9a29a;
-}
-
+input::placeholder,
 .search input::placeholder {
-  color: #a9a29a;
+  color: var(--control-muted);
 }
 
 .results {
@@ -1482,7 +1546,7 @@ input::placeholder {
   left: 0;
   right: 0;
   top: 100%;
-  background: #181818;
+  background: var(--list-bg);
   border: 1px solid var(--line-ui);
   max-height: 260px;
   overflow: auto;
@@ -1499,9 +1563,9 @@ input::placeholder {
   width: 100%;
   text-align: left;
   border: 0;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--chart-grid);
   background: none;
-  color: #eee;
+  color: var(--list-text);
   padding: 7px 10px;
   font: 400 14px Poppins, sans-serif;
   cursor: pointer;
@@ -1509,16 +1573,16 @@ input::placeholder {
 
 .results button:hover,
 .results button:focus {
-  background: #262626;
+  background: var(--control-hover);
 }
 
 .results b {
-  color: var(--or);
+  color: var(--control-accent);
   font-weight: 700;
 }
 
 .results small {
-  color: #a9a29a;
+  color: var(--control-muted);
 }
 
 .panel {
@@ -1530,7 +1594,7 @@ input::placeholder {
   justify-content: space-between;
   gap: 10px;
   align-items: baseline;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--story-source-line);
   padding-bottom: 6px;
 }
 
@@ -1548,7 +1612,7 @@ input::placeholder {
 }
 
 .panel .hd span {
-  color: var(--or);
+  color: var(--story-accent);
   font-weight: 800;
   font-size: 13px;
 }
@@ -1562,19 +1626,19 @@ input::placeholder {
 }
 
 .drillstat div {
-  border-bottom: 1px solid #2b2b2b;
+  border-bottom: 1px solid var(--story-row-line);
   padding: 3px 0;
 }
 
 .drillstat b {
-  color: var(--or);
+  color: var(--story-accent);
 }
 
 .vlist {
   max-height: 190px;
   overflow: auto;
   margin: 4px 0;
-  border-top: 1px solid #2b2b2b;
+  border-top: 1px solid var(--story-row-line);
 }
 
 .vlist div {
@@ -1582,24 +1646,24 @@ input::placeholder {
   justify-content: space-between;
   gap: 10px;
   padding: 4px 0;
-  border-bottom: 1px solid #232323;
+  border-bottom: 1px solid var(--story-source-line);
   font-size: 13.5px;
 }
 
 .vlist span {
-  color: #cfc7ba;
+  color: var(--story-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .vlist b {
-  color: var(--or);
+  color: var(--story-accent);
   white-space: nowrap;
 }
 
 .vlist .gp {
-  color: #a9a29a;
+  color: var(--story-muted);
   font-size: 11px;
   display: block;
   overflow: hidden;
@@ -1632,7 +1696,7 @@ input::placeholder {
 }
 
 .tl b {
-  color: var(--or);
+  color: var(--story-accent);
   white-space: nowrap;
 }
 
@@ -1643,7 +1707,7 @@ input::placeholder {
 }
 
 .dark .note {
-  color: #d8a678;
+  color: var(--story-note);
 }
 
 .src {
@@ -1656,8 +1720,8 @@ input::placeholder {
 }
 
 .dark .src {
-  color: #8c867d;
-  border-top-color: #333;
+  color: var(--story-muted);
+  border-top-color: var(--story-source-line);
 }
 
 .src code {
@@ -1666,7 +1730,7 @@ input::placeholder {
 }
 
 .loading {
-  color: #a9a29a;
+  color: var(--story-muted);
   font-size: 14px;
 }
 
@@ -1714,7 +1778,7 @@ input::placeholder {
 .ban {
   min-width: 0;
   background: rgba(255, 98, 0, 0.08);
-  border-left: 3px solid var(--or);
+  border-left: 3px solid var(--story-accent);
   padding: 8px 10px;
 }
 .ban b,
@@ -1729,13 +1793,13 @@ input::placeholder {
   display: block;
   font: 700 clamp(24px, 2.6vw, 34px)/1 Poppins, sans-serif;
   letter-spacing: -0.02em;
-  color: var(--or);
+  color: var(--story-accent);
 }
 .ban span {
   display: block;
   font-size: 12px;
   line-height: 1.25;
-  color: #b7afa4;
+  color: var(--story-muted);
 }
 
 /* Only widen to four columns once the card can truly fit the numbers. */
@@ -1750,8 +1814,8 @@ input::placeholder {
 .progress-gauge {
   margin: 10px 0 14px;
   padding: 10px 12px;
-  border: 1px solid #3a2a20;
-  background: #161412;
+  border: 1px solid var(--story-panel-border);
+  background: var(--story-panel-bg);
 }
 .gauge-head {
   display: flex;
@@ -1760,17 +1824,17 @@ input::placeholder {
   gap: 4px 10px;
   align-items: baseline;
   font-size: 13px;
-  color: #cfc7ba;
+  color: var(--story-panel-text);
 }
 .gauge-head b {
-  color: #fff;
+  color: var(--story-panel-strong);
   font-weight: 700;
 }
 .gauge-track {
   height: 12px;
-  background: #2b241d;
+  background: var(--story-panel-track);
   margin: 8px 0 6px;
-  border: 1px solid #3a2a20;
+  border: 1px solid var(--story-panel-border);
 }
 .gauge-track i {
   transition: width 0.6s ease;
@@ -1784,7 +1848,7 @@ input::placeholder {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: #ffb067;
+  color: var(--story-panel-meta);
   font-weight: 700;
 }
 .gauge-note {
@@ -1793,27 +1857,27 @@ input::placeholder {
 }
 .org-tree { margin: 8px 0 14px; }
 .org-tree h3 { margin-bottom: 4px; }
-.org-tree details { border-bottom: 1px solid #2b2b2b; }
+.org-tree details { border-bottom: 1px solid var(--story-row-line); }
 .org-tree summary {
   cursor: pointer;
   padding: 5px 0;
   font-size: 13.5px;
-  color: #cfc7ba;
+  color: var(--story-muted);
 }
 .org-tree summary b {
   float: right;
-  color: var(--or);
+  color: var(--story-accent);
   font-weight: 800;
 }
 .org-mandal,
 .org-kendra { margin-left: 12px; }
 .org-tree .vlist { max-height: 140px; margin-bottom: 6px; }
 .grade-summary { margin: 8px 0 12px; }
-.grade-bar { display: flex; height: 14px; border: 1px solid #333; overflow: hidden; margin: 6px 0; }
+.grade-bar { display: flex; height: 14px; border: 1px solid var(--story-source-line); overflow: hidden; margin: 6px 0; }
 .grade-bar i { display: block; height: 100%; }
-.grade-legend { display: flex; flex-wrap: wrap; gap: 8px 12px; font-size: 12px; color: #cfc7ba; }
+.grade-legend { display: flex; flex-wrap: wrap; gap: 8px 12px; font-size: 12px; color: var(--story-muted); }
 .grade-legend span { display: inline-flex; align-items: center; gap: 5px; }
-.grade-legend s { width: 12px; height: 12px; display: inline-block; text-decoration: none; border: 1px solid #222; }
+.grade-legend s { width: 12px; height: 12px; display: inline-block; text-decoration: none; border: 1px solid var(--story-source-line); }
 .gA { background: #7a3208; }
 .gB { background: #c24d0a; }
 .gC { background: #ff6200; }
@@ -1915,8 +1979,16 @@ body.show-map-bans #map-bans { display: block; }
 }
 
 .network-region {
+  fill: none;
   fill-rule: evenodd;
+  stroke: #3a2a20;
+  stroke-width: 0.55;
   pointer-events: none;
+}
+.network-region.selected {
+  fill: #1a1410;
+  stroke: #8a3d10;
+  stroke-width: 0.9;
 }
 
 .network-village-boundaries path {
@@ -2355,8 +2427,9 @@ body.show-map-bans #map-bans { display: block; }
 }
 
 /* ---------------------------------------------------------------- light mode */
-[data-theme='light'] .card {
+[data-theme='light'] .card:not(.dark) {
   border: 1px solid var(--line);
+  border-top: 6px solid var(--or);
 }
 
 /* Pale land with dark outlines replaces the dark map canvas. */
@@ -2453,6 +2526,8 @@ body.show-map-bans #map-bans { display: block; }
 }
 [data-theme='light'] .map-bans-row { border-top-color: var(--ui-border); }
 [data-theme='light'] .map-gauge-track { stroke: var(--track); }
+[data-theme='light'] .map-gauge-fill { filter: none; }
+[data-theme='light'] #mapstat { text-shadow: none; }
 [data-theme='light'] .influence-panel { border-top-color: var(--accent-ui); }
 
 /* Network text and links need darker ink once the canvas is light. */
@@ -2460,7 +2535,16 @@ body.show-map-bans #map-bans { display: block; }
 [data-theme='light'] .network-labels text,
 [data-theme='light'] .network-cluster-label {
   fill: #1a1a1a;
-  stroke: #ffffff;
+  stroke: none;
+}
+[data-theme='light'] .network-region { stroke: #8a8175; }
+[data-theme='light'] .network-region.selected {
+  fill: #e6dfd3;
+  stroke: #a83a00;
+}
+[data-theme='light'] .network-village-boundaries path {
+  stroke: #a83a00;
+  stroke-opacity: 0.35;
 }
 [data-theme='light'] .network-edges path.assembly {
   stroke: #8a3d10;
@@ -2468,5 +2552,21 @@ body.show-map-bans #map-bans { display: block; }
 }
 [data-theme='light'] .network-edges path.village { stroke: #a83a00; }
 [data-theme='light'] .network-edges path.panchayat { stroke: #c2410c; }
+[data-theme='light'] .network-nodes circle:hover,
 [data-theme='light'] .network-team circle.selected { stroke: #1a1a1a; }
+[data-theme='light'] .network-nodes circle:focus-visible,
 [data-theme='light'] .network-team circle:focus-visible { stroke: #a83a00; }
+[data-theme='light'] .network-team circle.pradhan,
+[data-theme='light'] .network-team circle.pradhan.selected {
+  stroke: #a83a00;
+}
+[data-theme='light'] .network-team circle:focus-visible,
+[data-theme='light'] .network-team circle.pradhan,
+[data-theme='light'] .network-team circle.pradhan.selected {
+  filter: none;
+}
+[data-theme='light'] .network-legend-dot,
+[data-theme='light'] .network-legend-ring { border-color: #a83a00; }
+[data-theme='light'] .network-legend-dot { background: #a83a00; }
+[data-theme='light'] .network-legend-line { border-top-color: #8a3d10; }
+[data-theme='light'] .network-legend-influence { border-color: #6f6559; background: #6f6559; }

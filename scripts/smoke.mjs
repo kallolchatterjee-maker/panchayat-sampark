@@ -268,6 +268,22 @@ try {
     cssText.includes("[data-theme='light']") && cssText.includes('--page-bg') && cssText.includes('--accent-ui'));
   check('theme is applied before CSS paints',
     html.includes("dataset.theme = saved === 'light' ? 'light' : 'dark'") && html.includes('/js/theme.js'));
+  check('story cards follow the active theme',
+    cssText.includes('--story-bg: var(--ink-2)') &&
+    cssText.includes('--story-bg: #ffffff') &&
+    cssText.includes('background: var(--story-bg);') &&
+    !cssText.includes('.dark {\n  background: var(--ink-2);'));
+  check('form controls follow the active theme',
+    cssText.includes('--control-bg: #000') &&
+    cssText.includes('--control-bg: #ffffff') &&
+    cssText.includes('background: var(--control-bg);'));
+  check('light mode removes text and node shadows',
+    cssText.includes('text-shadow: none;') &&
+    cssText.includes("[data-theme='light'] .network-team circle.pradhan,") &&
+    cssText.includes('filter: none;'));
+  check('network regions are themeable',
+    cssText.includes('.network-region.selected') &&
+    cssText.includes("[data-theme='light'] .network-region.selected"));
 
   // WCAG AA: normal text >= 4.5:1; focus rings and UI borders >= 3:1.
   const aaText = [
@@ -278,6 +294,11 @@ try {
     ['muted text on light card', '#5b544b', '#ffffff'],
     ['accent text on light card', '#a83a00', '#ffffff'],
     ['muted text on light page', '#5b544b', '#efe9df'],
+    ['story muted on light card', '#5b544b', '#ffffff'],
+    ['story accent on light card', '#a83a00', '#ffffff'],
+    ['story note on light card', '#8a3c0d', '#ffffff'],
+    ['story muted on dark card', '#a9a29a', '#1a1a1a'],
+    ['story accent on dark card', '#ff6200', '#1a1a1a'],
     ['ui text on dark chip', '#e8e2d8', '#121212'],
     ['ui text on light chip', '#1a1a1a', '#ffffff'],
   ];

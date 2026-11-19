@@ -3,7 +3,7 @@
 const boot = JSON.parse(document.getElementById('boot').textContent);
 const [{ createMap }, { createVillageNetwork }] = await Promise.all([
   import(`./map.js?v=${encodeURIComponent(boot.v)}&ui=22`),
-  import(`./network.js?v=${encodeURIComponent(boot.v)}&ui=22`),
+  import(`./network.js?v=${encodeURIComponent(boot.v)}&ui=23`),
 ]);
 const nf = new Intl.NumberFormat('en-IN');
 const n = (value) => nf.format(Math.round(Number(value) || 0));
