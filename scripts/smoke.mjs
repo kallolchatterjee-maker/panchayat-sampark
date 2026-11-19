@@ -115,6 +115,8 @@ try {
   check('campaign progress drives the choropleth', mapSource.includes('campaignScale') && mapSource.includes('setProgress') && mainSource.includes('map.setProgress('));
   check('village network dataviz is still wired', mainSource.includes('createVillageNetwork') && networkSource.includes('network-cells') && networkSource.includes('network-edges') && networkSource.includes('renderInfluenceDetail'));
   check('village network controls and influence panel are rendered', ['network-district', 'network-block', 'network-status', 'network-svg', 'influence-panel'].every((id) => html.includes(`id="${id}"`)));
+  check('gram network uses force links and repulsion', ['forceLink', 'forceManyBody', 'buildCellLinks', 'buildMemberLinks', 'alphaDecay'].every((token) => networkSource.includes(token)));
+  check('gram network reheat control is rendered and wired', html.includes('id="network-reheat"') && networkSource.includes("getElementById('network-reheat')") && networkSource.includes('reheatLayout'));
   check('Lok Sabha filter is wired to the map and AC list', mapSource.includes('selectPc') && mapSource.includes('pc-match') && mainSource.includes('map.selectPc(') && mainSource.includes('setOnPcSelect'));
   check('no unresolved EJS markers', !html.includes('<%'));
 

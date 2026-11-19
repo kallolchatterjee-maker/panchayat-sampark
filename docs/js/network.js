@@ -6,7 +6,7 @@ const INFLUENCE_COLORS = {
 };
 
 const boot = JSON.parse(document.getElementById('boot').textContent);
-const moduleVersion = `${encodeURIComponent(boot.v)}&ui=21`;
+const moduleVersion = `${encodeURIComponent(boot.v)}&ui=22`;
 let districtFeatures = null;
 
 const districtKey = (name) => {
@@ -57,7 +57,10 @@ export function createVillageNetwork({ onVillageClick }) {
   let requestId = 0;
   let controller = null;
   let simulation = null;
+  let cellSimulation = null;
   let detailSimulation = null;
+  let reheatLayout = () => {};
+  let reheatCount = 0;
   let selectedMemberId = null;
   let lastTrigger = null;
   let syncSelection = () => {};
@@ -87,6 +90,7 @@ export function createVillageNetwork({ onVillageClick }) {
       if (reduce) svg.call(zoomBehavior.transform, d3.zoomIdentity);
       else svg.transition().duration(220).call(zoomBehavior.transform, d3.zoomIdentity);
     });
+    document.getElementById('network-reheat')?.addEventListener('click', () => reheatLayout());
     return zoomBehavior;
   }
 
@@ -192,7 +196,16 @@ export function createVillageNetwork({ onVillageClick }) {
     if (remaining > 0) parts[parts.length - 1].value += remaining;
 
     const r = d3.scaleSqrt().domain([0, d3.max(parts, (p) => p.value) || 1]).range([10, 34]);
-    const nodes = parts.map((p) => ({ ...p, r: r(p.value), x: width / 2 + (Math.random() - 0.5) * 30, y: height / 2 + (Math.random() - 0.5) * 30 }));
+    const nodes = parts.map((p) => {
+      const angle = (hashString(`${p.id}:start`) / 4294967295) * Math.PI * 2;
+      const reach = 6 + (hashString(`${p.id}:reach`) / 4294967295) * 18;
+      return {
+        ...p,
+        r: r(p.value),
+        x: width / 2 + Math.cos(angle) * reach,
+        y: height / 2 + Math.sin(angle) * reach,
+      };
+    });
     const color = d3.scaleLinear().domain([0, levels - 1]).range(['#d9d9d9', '#6b6b6b']);
 
     influenceTitle.textContent = `${member.villageName} · ${member.name}`;
@@ -241,15 +254,22 @@ export function createVillageNetwork({ onVillageClick }) {
 
     detailSimulation = d3
       .forceSimulation(nodes)
-      .force('charge', d3.forceManyBody().strength(2))
+      .force('charge', d3.forceManyBody().strength(-18).distanceMax(120))
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius((d) => d.r + 3))
       .force('x', d3.forceX(width / 2).strength(0.08))
       .force('y', d3.forceY(height / 2).strength(0.08))
+      .alphaDecay(0.02)
       .on('tick', () => {
         clampNodes();
         paintNodes();
       });
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      detailSimulation.stop();
+      for (let i = 0; i < 120; i++) detailSimulation.tick();
+      clampNodes();
+      paintNodes();
+    }
   }
 
   function draw(data, villageBoundaries) {
@@ -257,6 +277,7 @@ export function createVillageNetwork({ onVillageClick }) {
     syncSelection = () => {};
     closeInfluence();
     if (simulation) simulation.stop();
+    if (cellSimulation) cellSimulation.stop();
     const width = Math.max(320, view.clientWidth);
     const height = Math.max(320, view.clientHeight);
     svg.attr('viewBox', `0 0 ${width} ${height}`);
@@ -409,25 +430,33 @@ export function createVillageNetwork({ onVillageClick }) {
     const areaBudget = width * height * 0.22;
     const areaSum = cells.reduce((sum, cell) => sum + Math.PI * cell.r * cell.r, 0);
     const fit = Math.min(1, Math.sqrt(areaBudget / Math.max(areaSum, 1)));
-    for (const cell of cells) {
-      cell.r = Math.max(14, Math.min(72, cell.r * fit));
-      cell.x = cell.ax;
-      cell.y = cell.ay;
-    }
+    for (const cell of cells) cell.r = Math.max(14, Math.min(72, cell.r * fit));
 
-    const cellSim = d3
-      .forceSimulation(cells)
-      .force('x', d3.forceX((cell) => cell.ax).strength(0.34))
-      .force('y', d3.forceY((cell) => cell.ay).strength(0.34))
-      .force('collide', d3.forceCollide((cell) => cell.r + 5).iterations(3))
-      .stop();
-    for (let i = 0; i < 220; i++) cellSim.tick();
+    // Force layout begins from a deterministic scatter around each geographic
+    // anchor, so panchayats visibly settle into clusters instead of snapping.
+    const cellLinks = buildCellLinks(cells);
+    const clampCells = () => {
+      for (const cell of cells) {
+        cell.x = Math.max(cell.r + 8, Math.min(width - cell.r - 8, cell.x));
+        cell.y = Math.max(cell.r + 8, Math.min(height - cell.r - 8, cell.y));
+      }
+    };
+    const syncMemberAnchors = () => {
+      for (const cell of cells) {
+        for (const member of cell.members) {
+          member.cx = cell.x;
+          member.cy = cell.y;
+        }
+      }
+    };
     for (const cell of cells) {
-      cell.x = Math.max(cell.r + 8, Math.min(width - cell.r - 8, cell.x));
-      cell.y = Math.max(cell.r + 8, Math.min(height - cell.r - 8, cell.y));
+      const angle = (hashString(`${cell.id}:cell`) / 4294967295) * Math.PI * 2;
+      const reach = 12 + (hashString(`${cell.id}:dist`) / 4294967295) * 34;
+      cell.x = cell.ax + Math.cos(angle) * reach;
+      cell.y = cell.ay + Math.sin(angle) * reach;
     }
+    clampCells();
 
-    const cellById = new Map(cells.map((cell) => [cell.id, cell]));
     for (const cell of cells) {
       for (const member of cell.members) {
         const spin = (hashString(member.id) / 4294967295) * Math.PI * 2;
@@ -442,6 +471,53 @@ export function createVillageNetwork({ onVillageClick }) {
 
     const acIds = [...new Set(cells.map((cell) => cell.ac).filter((ac) => ac != null))].sort((a, b) => a - b);
     const acColor = (ac) => ORANGE_SHADES[(Math.max(0, acIds.indexOf(ac)) + 2) % ORANGE_SHADES.length];
+
+    // Stable force links: neighbouring panchayats in one assembly, and team
+    // members around their village and gram pradhan. Built from anchors so the
+    // graph keeps the same relationships as it breathes.
+    function buildCellLinks(list) {
+      const links = [];
+      const seen = new Set();
+      const byAc = d3.group(list.filter((cell) => cell.ac != null), (cell) => cell.ac);
+      for (const group of byAc.values()) {
+        if (group.length < 2) continue;
+        for (const cell of group) {
+          const nearest = group
+            .filter((other) => other.id !== cell.id)
+            .map((other) => ({ other, dist: (other.ax - cell.ax) ** 2 + (other.ay - cell.ay) ** 2 }))
+            .sort((a, b) => a.dist - b.dist)
+            .slice(0, 2);
+          for (const { other } of nearest) {
+            const key = cell.id < other.id ? `${cell.id}|${other.id}` : `${other.id}|${cell.id}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            links.push({ source: cell, target: other });
+          }
+        }
+      }
+      return links;
+    }
+
+    function buildMemberLinks() {
+      const links = [];
+      const byVillage = d3.group(members, (member) => member.villageId);
+      for (const group of byVillage.values()) {
+        for (let i = 1; i < group.length; i++) {
+          links.push({ source: group[0], target: group[i], type: 'village' });
+        }
+      }
+      const byCell = d3.group(members, (member) => member.cellId);
+      for (const group of byCell.values()) {
+        const pradhan = group.find((member) => member.isPradhan);
+        if (!pradhan) continue;
+        for (const member of group) {
+          if (member.id !== pradhan.id) {
+            links.push({ source: member, target: pradhan, type: 'panchayat' });
+          }
+        }
+      }
+      return links;
+    }
 
     function edgePath(link) {
       const a = link.source;
@@ -569,13 +645,16 @@ export function createVillageNetwork({ onVillageClick }) {
         const hit = placed.some((item) => box.x0 < item.x1 && box.x1 > item.x0 && box.y0 < item.y1 && box.y1 > item.y0);
         if (hit) continue;
         placed.push(box);
-        keep.push({ ...cell, text });
+        // Keep the live cell object so the label follows it during the force
+        // animation instead of freezing at its starting position.
+        cell.text = text;
+        keep.push(cell);
         if (keep.length >= 12) break;
       }
       return keep;
     }
 
-    stage
+    const cellLabels = stage
       .append('g')
       .attr('class', 'network-cell-labels')
       .selectAll('text')
@@ -669,29 +748,95 @@ export function createVillageNetwork({ onVillageClick }) {
         member.y = Math.max(member.r, Math.min(height - member.r, member.y));
       }
     };
+    const paintCells = () => {
+      cellMarks.attr('cx', (cell) => cell.x).attr('cy', (cell) => cell.y);
+      cellLabels.attr('x', (cell) => cell.x).attr('y', (cell) => cell.y - cell.r - 6);
+      if (!edgeSelection) paintEdges();
+    };
     const paintMembers = () => {
       circles.attr('cx', (member) => member.x).attr('cy', (member) => member.y);
       if (edgeSelection) edgeLayer.selectAll('path').attr('d', edgePath);
     };
 
+    // Panchayats repel each other but stay loosely tied to their geographic
+    // anchor; neighbours in one assembly are gently pulled into a cluster.
+    cellSimulation = d3
+      .forceSimulation(cells)
+      .force('link', d3.forceLink(cellLinks).id((cell) => cell.id)
+        .distance((link) => Math.max(link.source.r + link.target.r + 18, 46))
+        .strength(0.06))
+      .force('charge', d3.forceManyBody().strength((cell) => -Math.max(24, cell.r * 2.4)).distanceMax(260))
+      .force('x', d3.forceX((cell) => cell.ax).strength(0.2))
+      .force('y', d3.forceY((cell) => cell.ay).strength(0.2))
+      .force('collide', d3.forceCollide((cell) => cell.r + 6).iterations(3))
+      .alphaDecay(0.018)
+      .on('tick', () => {
+        clampCells();
+        syncMemberAnchors();
+        paintCells();
+      });
+
+    // Team members repel, collide and follow their village / pradhan links,
+    // while the moving panchayat centre remains their home anchor.
+    const memberLinks = buildMemberLinks();
     simulation = d3
       .forceSimulation(members)
-      .force('x', d3.forceX((member) => member.cx).strength(0.08))
-      .force('y', d3.forceY((member) => member.cy).strength(0.08))
+      .force('link', d3.forceLink(memberLinks).id((member) => member.id)
+        .distance((link) => (link.type === 'panchayat' ? 16 : 12))
+        .strength((link) => (link.type === 'panchayat' ? 0.1 : 0.16)))
+      .force('charge', d3.forceManyBody().strength((member) => -Math.max(6, member.r * 2.2)).distanceMax(58))
+      .force('x', d3.forceX((member) => member.cx).strength(0.06))
+      .force('y', d3.forceY((member) => member.cy).strength(0.06))
       .force('collide', d3.forceCollide((member) => member.r + 1.15).iterations(2))
-      .alphaDecay(0.028)
+      .alphaDecay(0.015)
       .on('tick', () => {
         clampMembers();
         paintMembers();
       });
 
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduceMotion) {
-      simulation.stop();
-      for (let i = 0; i < 160; i++) simulation.tick();
+    const settle = () => {
+      for (const sim of [cellSimulation, simulation]) {
+        if (!sim) continue;
+        sim.stop();
+        for (let i = 0; i < 180; i++) sim.tick();
+        sim.alpha(0);
+      }
+      clampCells();
+      syncMemberAnchors();
+      paintCells();
       clampMembers();
       paintMembers();
-    }
+    };
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) settle();
+
+    reheatLayout = () => {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      reheatCount += 1;
+      // A deterministic nudge makes the reheat visible even after settling.
+      for (const cell of cells) {
+        const angle = (hashString(`${cell.id}:rh:${reheatCount}`) / 4294967295) * Math.PI * 2;
+        const reach = 8 + (hashString(`${cell.id}:rj:${reheatCount}`) / 4294967295) * 22;
+        cell.x += Math.cos(angle) * reach;
+        cell.y += Math.sin(angle) * reach;
+      }
+      syncMemberAnchors();
+      for (const member of members) {
+        const angle = (hashString(`${member.id}:rh:${reheatCount}`) / 4294967295) * Math.PI * 2;
+        const reach = 4 + (hashString(`${member.id}:rj:${reheatCount}`) / 4294967295) * 12;
+        member.x += Math.cos(angle) * reach;
+        member.y += Math.sin(angle) * reach;
+      }
+      clampCells();
+      clampMembers();
+      paintCells();
+      paintMembers();
+      if (reduce) {
+        settle();
+        return;
+      }
+      if (cellSimulation) cellSimulation.alpha(0.7).restart();
+      if (simulation) simulation.alpha(0.9).restart();
+    };
 
     syncSelection = applySelection;
     applySelection();
@@ -706,8 +851,8 @@ export function createVillageNetwork({ onVillageClick }) {
       `${villages.length.toLocaleString('en-IN')} गाँव · ${cells.length.toLocaleString('en-IN')} ग्राम पंचायत · ` +
       `${members.length.toLocaleString('en-IN')} टीम सदस्य`;
     status.textContent =
-      `बड़ा वृत्त ग्राम पंचायत है; छोटा वृत्त टीम सदस्य है और उसका आकार प्रभाव है। ` +
-      `डैश रेखा एक ही विधानसभा की निकट पंचायतें जोड़ती है। ` +
+      `बड़ा वृत्त ग्राम पंचायत; छोटा वृत्त टीम सदस्य, आकार = प्रभाव। ` +
+      `वृत्त धक्का-खींच कर अपने समूह में बैठते हैं — ✧ दबाकर दोबारा हिलाएँ। ` +
       `300+: ${(bucketCounts['300+'] || 0).toLocaleString('en-IN')}, ` +
       `100–300: ${(bucketCounts['100-300'] || 0).toLocaleString('en-IN')}, ` +
       `<100: ${(bucketCounts['<100'] || 0).toLocaleString('en-IN')}. ` +
@@ -778,6 +923,12 @@ export function createVillageNetwork({ onVillageClick }) {
         if (alreadyLoaded && currentData) {
           draw(currentData, boundaryCache.get(blockSelect.value) ?? []);
         }
+        // Returning to the view brings a settled layout gently back to life.
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!reduce) {
+          if (cellSimulation) cellSimulation.alpha(0.35).restart();
+          if (simulation) simulation.alpha(0.35).restart();
+        }
       } catch (error) {
         console.error(error);
         status.textContent = 'नेटवर्क इंडेक्स लोड नहीं हो सका। सर्वर लॉग देखें।';
@@ -786,6 +937,8 @@ export function createVillageNetwork({ onVillageClick }) {
     hide() {
       clearTip();
       closeInfluence();
+      cellSimulation?.stop();
+      simulation?.stop();
     },
   };
 }

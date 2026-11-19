@@ -1805,6 +1805,13 @@ body.show-map-bans #map-bans { display: block; }
   color: #fff;
 }
 
+/* Force-layout replay — warmer than the zoom controls so it reads as an action. */
+#network-reheat {
+  color: #ffb067;
+  font-size: 15px;
+  margin-top: 4px;
+}
+
 .network-heading {
   position: absolute;
   top: 76px;
