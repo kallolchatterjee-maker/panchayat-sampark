@@ -831,12 +831,9 @@ export function createVillageNetwork({ onVillageClick }) {
       `${villages.length.toLocaleString('en-IN')} गाँव · ${cells.length.toLocaleString('en-IN')} ग्राम पंचायत · ` +
       `${members.length.toLocaleString('en-IN')} टीम सदस्य`;
     status.textContent =
-      `बड़ा वृत्त ग्राम पंचायत; छोटा वृत्त टीम सदस्य, आकार = प्रभाव। ` +
-      `वृत्त धक्का-खींच कर अपने समूह में बैठते हैं — ✧ दबाकर दोबारा हिलाएँ। ` +
       `300+: ${(bucketCounts['300+'] || 0).toLocaleString('en-IN')}, ` +
       `100–300: ${(bucketCounts['100-300'] || 0).toLocaleString('en-IN')}, ` +
-      `<100: ${(bucketCounts['<100'] || 0).toLocaleString('en-IN')}. ` +
-      `सदस्य चुनें: गाँव की टीम और ग्राम प्रधान जुड़ेंगे, प्रभाव-स्तर ग्रे चार्ट में खुलेगा।`;
+      `<100: ${(bucketCounts['<100'] || 0).toLocaleString('en-IN')}.`;
   }
 
   async function loadNetwork(id, signal) {

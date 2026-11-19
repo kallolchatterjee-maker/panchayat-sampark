@@ -3,7 +3,7 @@
 const boot = JSON.parse(document.getElementById('boot').textContent);
 const [{ createMap }, { createVillageNetwork }] = await Promise.all([
   import(`./map.js?v=${encodeURIComponent(boot.v)}&ui=22`),
-  import(`./network.js?v=${encodeURIComponent(boot.v)}&ui=23`),
+  import(`./network.js?v=${encodeURIComponent(boot.v)}&ui=24`),
 ]);
 const nf = new Intl.NumberFormat('en-IN');
 const n = (value) => nf.format(Math.round(Number(value) || 0));
@@ -217,33 +217,6 @@ pcFilterSelects.forEach((el) => {
 });
 map.setOnPcSelect((pcNo) => applyPcFilter(pcNo, { fromMap: true }));
 
-// ---------------------------------------------------------- Amethi panchayat
-const panchayatExplorer = document.querySelector('[data-panchayat-explorer]');
-if (panchayatExplorer) {
-  const blockSelect = panchayatExplorer.querySelector('[data-panchayat-block]');
-  const blockDetails = panchayatExplorer.querySelector('[data-panchayat-details]');
-
-  function renderPanchayatBlock() {
-    const block = boot.panchayat.blocks.find((item) => item.name === blockSelect.value);
-    if (!block) throw new Error(`Unknown Amethi block: ${blockSelect.value}`);
-
-    blockDetails.innerHTML = `
-      <p class="sm">क्षेत्र पंचायत वार्ड: ${n(block.kshetraWardCount)} प्रविष्टियाँ ·
-        ग्राम पंचायत सारांश: ${n(block.gpRecordsCount)} पंक्तियाँ · ${n(block.gps.length)} अलग-अलग नाम</p>
-      <details>
-        <summary>क्षेत्र पंचायत वार्ड प्रविष्टियाँ (${n(block.kshetraWardEntries.length)})</summary>
-        <ul class="panchayat-list" tabindex="0">${block.kshetraWardEntries.map((name) => `<li>${esc(name)}</li>`).join('')}</ul>
-      </details>
-      <details>
-        <summary>ग्राम पंचायत नाम (${n(block.gps.length)})</summary>
-        <ul class="panchayat-list" tabindex="0">${block.gps.map((name) => `<li>${esc(name)}</li>`).join('')}</ul>
-      </details>`;
-  }
-
-  blockSelect.addEventListener('change', renderPanchayatBlock);
-  renderPanchayatBlock();
-}
-
 // ----------------------------------------- Amethi assembly comparison chart
 const amethiChart = document.querySelector('[data-amethi-constituencies]');
 amethiChart?.addEventListener('click', (event) => {
@@ -277,6 +250,8 @@ function applyScrollState() {
   if (map.mode !== mode) map.setMode(mode);
   if (mode === 'network') villageNetwork?.show();
   else villageNetwork?.hide();
+  // The team section takes the full width and replaces the sticky map.
+  document.body.classList.toggle('map-hidden', step.hasAttribute('data-map-hidden'));
   // BANs over the map on the first section (hero)
   const showBans = step.id === 'hero' || steps.indexOf(step) === 0;
   document.body.classList.toggle('show-map-bans', showBans);
@@ -373,7 +348,7 @@ function renderPanel(detail, gradeInfo = null) {
   const gradeHtml = gTotal
     ? `
     <div class="grade-summary">
-      <h3>बूथ ग्रेडिंग <small class="sm">UP Booth Analysis (6 वर्ष) · अंतिम 4 चुनावों से</small></h3>
+      <h3>बूथ ग्रेडिंग</h3>
       <div class="grade-bar" role="img" aria-label="बूथ ग्रेड वितरण A से D">
         <i class="gA" style="width:${seg('A')}%" title="A: ${n(grades.A)}"></i>
         <i class="gB" style="width:${seg('B')}%" title="B: ${n(grades.B)}"></i>

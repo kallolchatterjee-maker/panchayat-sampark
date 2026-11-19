@@ -4,8 +4,6 @@
   const tierVizKey = typeof vizKey === 'string' && vizKey ? vizKey : 'main';
 %>
 <div class="tier-viz" data-tier-viz="<%= tierVizKey %>" role="group" aria-label="तीन स्तरों के निर्वाचित प्रतिनिधि">
-  <p class="tier-viz-note">पट्टी की लंबाई <b>log₁₀</b> पैमाने पर · सही संख्या लेबल में</p>
-
   <% vm.tiers.forEach((tier) => { %>
   <button
     type="button"

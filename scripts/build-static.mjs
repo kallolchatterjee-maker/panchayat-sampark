@@ -46,6 +46,8 @@ async function build() {
   // 2. Copy browser assets and generated map geometry.
   await cp(join(ROOT, 'public'), OUT, { recursive: true });
   await cp(join(ROOT, 'build', 'map'), join(OUT, 'data'), { recursive: true });
+  // A few committed Pages-only assets are not produced by the EJS build.
+  await cp(join(ROOT, 'static-extras'), OUT, { recursive: true });
   await writeFile(join(OUT, '.nojekyll'), '');
 
   // 3. Materialise every /api/* response the page can request.
@@ -74,9 +76,10 @@ async function build() {
   if (rendered.includes('src="/') || rendered.includes('href="/') || rendered.includes('<%')) {
     throw new Error('static snapshot still has root-relative URLs or unresolved EJS');
   }
-  for (const needle of ['./js/static-api.js', './js/auth-gate.js', 'id="boot"']) {
+  for (const needle of ['./js/static-api.js', './js/auth-gate.js', 'id="boot"', 'id="team"', './js/team-appointments.js']) {
     if (!rendered.includes(needle)) throw new Error(`static snapshot is missing ${needle}`);
   }
+  await readFile(join(OUT, 'team-appointments.json'));
 
   console.log(`Static snapshot → docs/ (${((Date.now() - started) / 1000).toFixed(1)}s)`);
   console.log(

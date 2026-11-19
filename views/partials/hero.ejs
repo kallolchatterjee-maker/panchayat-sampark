@@ -2,7 +2,6 @@
   <div class="card dark hero-card">
     <p class="k"><span lang="en">UTTAR PRADESH · 2026</span></p>
     <h1>उत्तर प्रदेश<br><span class="or">पंचायत अभियान</span></h1>
-    <p>विधानसभा, गाँव, ग्राम पंचायत और बूथ — एक ही नक्शे पर।</p>
 
     <div class="ban-strip" id="hero-bans" role="group" aria-label="मुख्य अभियान संख्याएँ">
       <div class="ban">
@@ -35,8 +34,6 @@
         <span id="gauge-pct"><%= ((vm.progress.current / vm.progress.target) * 100).toFixed(1) %>% पूर्ण</span>
         <span id="gauge-remaining"><%= num(Math.max(0, vm.progress.target - vm.progress.current)) %> शेष</span>
       </div>
-      <p class="sm gauge-note">डेमो आँकड़े · <code>/api/progress</code> से अपडेट होगा</p>
-      <p class="sm">नक्शा ज़िलों को बूथ-गाँव लिंक कवरेज से रंगता है; रंग की गहराई उपर वाली प्रगति के साथ बढ़ती है।</p>
     </div>
 
     <div class="tiles">
@@ -49,6 +46,5 @@
     <p class="sm">
       <span class="tag">अभियान डेक</span> 8,76,980 निर्वाचित प्रतिनिधि · 2,121 ज़मीनी टीम
     </p>
-    <p class="src">नक्शा और नीचे की सभी गणनाएँ <code>Data/</code> से · D3.js · सर्वर-रेंडर्ड</p>
   </div>
 </section>

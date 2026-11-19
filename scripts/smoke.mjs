@@ -48,7 +48,8 @@ try {
   const loginPage = await get('/login');
   const loginHtml = await loginPage.text();
   check('login page is served', loginPage.status === 200 &&
-    loginHtml.includes('लॉग इन') && loginHtml.includes('admin123'));
+    loginHtml.includes('लॉग इन') && loginHtml.includes('id="login-form"'));
+  check('login page hides the demo credentials', !loginHtml.includes('admin123'));
   const anonymousApi = await get('/api/progress');
   check('anonymous API is rejected', anonymousApi.status === 401, String(anonymousApi.status));
 
@@ -87,17 +88,19 @@ try {
   check('page embeds the boot payload', html.includes('id="boot"'));
   check('page never references a blob URL', !html.includes('blob:'));
   check('page links local D3 vendor build', html.includes('/vendor/d3.min.js'));
-  check('page mentions the match report', html.includes('village-match-report.csv'));
+  check('dashboard omits source citations',
+    !html.includes('class="src"') && !html.includes('स्रोत:') &&
+    !html.includes('.csv') && !html.includes('.geojson'));
+  check('dashboard omits explanatory note blocks', !html.includes('class="note"') && !html.includes('tier-viz-note'));
   check('page renders real booth total', html.includes(num(store.meta.totals.booths)));
   check('page renders shakti kendra total', html.includes(num(store.meta.org.shaktiKendras)));
-  check('page names the booth meta source', html.includes('UP_Booth_Meta.csv'));
   check('page renders real village total', html.includes(num(store.meta.totals.villages)));
-  check('page identifies the Amethi summary as a sample', html.includes('अमेठी') && html.includes('सभी जिलों का सारांश नहीं'));
-  check('page includes all Amethi blocks in the selector', store.panchayat.blocks.every((block) => html.includes(`>${block.name}</option>`)));
+  check('Amethi panchayat sample is removed',
+    !html.includes('panchayat-sample') && !html.includes('data-panchayat-explorer') &&
+    !html.includes('data-panchayat-block'));
   check('Amethi summary row totals are loaded', store.panchayat.gpRecords === store.panchayat.blocks.reduce((sum, block) => sum + block.gpRecordsCount, 0));
   const amethiAcs = store.acs.filter((ac) => ac.district === 'Amethi');
   check('page renders all Amethi constituency chart rows', amethiAcs.length === 4 && amethiAcs.every((ac) => html.includes(`data-amethi-ac="${ac.no}"`)));
-  check('constituency chart explains workbook GP attribution', html.includes('उन्हें विधानसभा क्षेत्रों में बाँटा नहीं गया है'));
   check('comparison card is wired to the district selector', html.includes('data-district-select') && html.includes('data-assembly-chart'));
   const districts = [...new Set(store.acs.map((ac) => ac.district))];
   check('district selector lists every assembly district', districts.length === 75 && districts.every((name) => html.includes(`value="${name}"`)));
@@ -119,7 +122,7 @@ try {
   check('parliament GeoJSON has 80 unique seats', sourcePcs.length === 80 && new Set(sourcePcs.map((pc) => pc.no)).size === 80);
   check('Lok Sabha filter comes from the parliament GeoJSON', bootPayload.pcOptions?.length === sourcePcs.length && sourcePcs.every((pc) => bootPayload.pcOptions.some((row) => row[0] === pc.no && row[1] === pc.name)));
   check('AC rows carry PC_NO for the filter', bootPayload.acs.length === 403 && bootPayload.acs.every((row) => Number.isFinite(row[11]) && row[11] > 0));
-  check('Lok Sabha filter controls are rendered', (html.match(/data-pc-filter/g) || []).length >= 2 && html.includes('UTTAR PRADESH_parliament.geojson') && html.includes('id="pc-filter-status"'));
+  check('Lok Sabha filter controls are rendered', (html.match(/data-pc-filter/g) || []).length >= 2 && html.includes('id="pc-filter-status"'));
 
   const mainSource = readFileSync(new URL('../public/js/main.js', import.meta.url), 'utf8');
   const mapSource = readFileSync(new URL('../public/js/map.js', import.meta.url), 'utf8');
@@ -130,6 +133,7 @@ try {
   check('gram network uses force links and repulsion', ['forceLink', 'forceManyBody', 'buildCellLinks', 'buildMemberLinks', 'alphaDecay'].every((token) => networkSource.includes(token)));
   check('gram network reheat control is rendered and wired', html.includes('id="network-reheat"') && networkSource.includes("getElementById('network-reheat')") && networkSource.includes('reheatLayout'));
   check('Lok Sabha filter is wired to the map and AC list', mapSource.includes('selectPc') && mapSource.includes('pc-match') && mainSource.includes('map.selectPc(') && mainSource.includes('setOnPcSelect'));
+
   check('no unresolved EJS markers', !html.includes('<%'));
 
   const cached = await get('/');
@@ -252,6 +256,8 @@ try {
     ['/js/map.js', 'createMap'],
     ['/js/network.js', 'createVillageNetwork'],
     ['/js/theme.js', 'theme-toggle'],
+    ['/js/team-appointments.js', 'team-tree'],
+    ['/team-appointments.json', '"zoneOrder"'],
     ['/vendor/d3.min.js', 'd3'],
     ['/vendor/topojson-client.min.js', 'topojson'],
   ]) {
@@ -262,8 +268,32 @@ try {
 
   // ------------------------------------------------------------------ theming
   const cssText = readFileSync(new URL('../public/css/app.css', import.meta.url), 'utf8');
+
+  // Team appointment showcase (Data/Tracker.xlsx sheet 3, materialised as JSON).
+  const teamData = JSON.parse(readFileSync(new URL('../public/team-appointments.json', import.meta.url), 'utf8'));
+  const teamScript = readFileSync(new URL('../public/js/team-appointments.js', import.meta.url), 'utf8');
+  check('team section follows the three-tier card',
+    html.indexOf('data-m="panchayat"') < html.indexOf('id="team"') &&
+    html.indexOf('id="team"') < html.indexOf('data-m="ac"'));
+  check('team section hides the map and takes full width',
+    html.includes('data-map-hidden') && mainSource.includes("classList.toggle('map-hidden'") &&
+    cssText.includes('body.map-hidden #map'));
+  check('team KPIs come from the tracker sheet',
+    html.includes(num(teamData.totals.acs)) && html.includes(num(teamData.totals.zilas)) &&
+    html.includes('विधानसभा टीम'));
+  check('team JSON has every appointment row', teamData.rows.length === teamData.totals.names && teamData.rows.length === 966);
+  check('team JSON covers all six zones and 321 Vidhan Sabha teams',
+    teamData.zoneOrder.length === 6 && teamData.totals.acs === 321 && teamData.totals.acsTarget === 403);
+  check('team JSON carries forward hierarchy and cleans mobile numbers',
+    teamData.rows.filter((row) => row.level === 'Vidhan Sabha' && row.zone && row.zila && row.ac).length > 900 &&
+    teamData.rows.every((row) => !/[Ee]/.test(row.mobile)));
+  check('team tree is wired for search and expand/collapse',
+    ['team-search', 'team-expand', 'team-collapse', 'team-tree'].every((id) => html.includes(`id="${id}"`)) &&
+    ['team-node', 'team-hit', "fetch('/team-appointments.json')"].every((token) => teamScript.includes(token)));
+
   check('light mode toggle is rendered',
-    html.includes('id="theme-toggle"') && html.includes('class="theme-toggle-icon"'));
+    html.includes('id="theme-toggle"') && html.includes('class="theme-toggle-icon"') &&
+    (html.match(/data-theme-toggle/g) || []).length === 2);
   check('light theme tokens and overrides are defined',
     cssText.includes("[data-theme='light']") && cssText.includes('--page-bg') && cssText.includes('--accent-ui'));
   check('theme is applied before CSS paints',

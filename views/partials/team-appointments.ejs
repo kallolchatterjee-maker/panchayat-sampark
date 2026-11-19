@@ -1,0 +1,31 @@
+<section class="step step-team" data-m="team" data-map-hidden id="team">
+  <div class="card team-card">
+    <p class="k"><span lang="en">TEAM APPOINTMENT</span> · टीम संरचना</p>
+    <h2>टीम <span class="or">नियुक्ति</span></h2>
+
+    <div class="team-kpis" role="group" aria-label="टीम नियुक्ति की मुख्य संख्याएँ">
+      <div class="team-kpi"><b><%= num(vm.team.totals.appointed) %></b><span>नियुक्त</span></div>
+      <div class="team-kpi"><b><%= num(vm.team.totals.pending) %></b><span>लंबित</span></div>
+      <div class="team-kpi"><b><%= num(vm.team.totals.zones) %>/<%= num(vm.team.totals.zoneTarget) %></b><span>ज़ोन</span></div>
+      <div class="team-kpi"><b><%= num(vm.team.totals.zilas) %></b><span>ज़िला</span></div>
+      <div class="team-kpi"><b><%= num(vm.team.totals.acs) %>/<%= num(vm.team.totals.acsTarget) %></b><span>विधानसभा टीम</span></div>
+    </div>
+
+    <div class="team-bar" role="group" aria-label="टीम संरचना नियंत्रण">
+      <label class="sr" for="team-search">नाम, ज़िला या विधानसभा खोजें</label>
+      <input type="search" id="team-search" placeholder="नाम, ज़िला या विधानसभा खोजें" autocomplete="off">
+      <button type="button" id="team-expand">सब खोलें</button>
+      <button type="button" id="team-collapse">सब बंद करें</button>
+      <button type="button" data-theme-toggle class="theme-toggle" aria-label="लाइट मोड चालू करें">
+        <span class="theme-toggle-icon" aria-hidden="true">☀</span>
+        <span class="theme-toggle-text">लाइट मोड</span>
+      </button>
+    </div>
+
+    <div class="team-scroll">
+      <div class="team-wrap">
+        <ul class="team-tree" id="team-tree" aria-label="प्रदेश से विधानसभा तक टीम संरचना"></ul>
+      </div>
+    </div>
+  </div>
+</section>
