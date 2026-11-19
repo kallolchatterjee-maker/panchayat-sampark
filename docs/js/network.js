@@ -531,35 +531,16 @@ export function createVillageNetwork({ onVillageClick }) {
       return `M${a.x},${a.y}Q${mx - dy * bend},${my + dx * bend} ${b.x},${b.y}`;
     }
 
+    // Draw the same stable links that drive the force simulation, so the
+    // dashed assembly lines stay consistent while the graph is settling.
     function assemblyLinks() {
-      const byAc = d3.group(cells.filter((cell) => cell.ac != null), (cell) => cell.ac);
-      const links = [];
-      const seen = new Set();
-      for (const list of byAc.values()) {
-        if (list.length < 2) continue;
-        const neighbors = list.length > 16 ? 1 : 2;
-        for (const cell of list) {
-          const nearest = list
-            .filter((other) => other.id !== cell.id)
-            .map((other) => ({ other, dist: (other.x - cell.x) ** 2 + (other.y - cell.y) ** 2 }))
-            .sort((a, b) => a.dist - b.dist)
-            .slice(0, neighbors);
-          for (const { other } of nearest) {
-            const [left, right] = cell.id < other.id ? [cell, other] : [other, cell];
-            const key = `ac|${left.id}|${right.id}`;
-            if (seen.has(key)) continue;
-            seen.add(key);
-            links.push({
-              key,
-              type: 'assembly',
-              source: left,
-              target: right,
-              w: left.influence + right.influence,
-            });
-          }
-        }
-      }
-      return links;
+      return cellLinks.map((link) => ({
+        key: `ac|${link.source.id}|${link.target.id}`,
+        type: 'assembly',
+        source: link.source,
+        target: link.target,
+        w: link.source.influence + link.target.influence,
+      }));
     }
 
     function egoLinks(member) {
