@@ -17,6 +17,48 @@
   --red: #e03a2f;
   --pad-top: env(safe-area-inset-top, 0px);
   --pad-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Theme tokens. Every value below is chosen for WCAG AA contrast:
+     body text >= 4.5:1, UI borders and focus rings >= 3:1. */
+  --page-bg: #121212;
+  --map-bg-a: #1d1a17;
+  --map-bg-b: #121212;
+  --map-bg-c: #0d0d0d;
+  --surface: var(--cream);
+  --text: var(--ink);
+  --ui-bg: rgba(12, 12, 12, 0.8);
+  --ui-solid: #121212;
+  --ui-text: #e8e2d8;
+  --ui-muted: #a9a29a;
+  --ui-border: #333;
+  --focus-ring: #ffd21f;
+  --focus-outer: #121212;
+  --track: #34291f;
+  --accent-ui: #ffb067;
+}
+
+/* Light theme: warm neutral surfaces, dark ink, and orange only as an accent.
+   --ink-2 stays dark because the "dark" story cards remain intentional accents. */
+[data-theme='light'] {
+  --cream: #ffffff;
+  --mute: #5b544b;
+  --line: #8a8175;
+  --line-ui: #6f6559;
+  --page-bg: #efe9df;
+  --map-bg-a: #fffdf9;
+  --map-bg-b: #f5f0e7;
+  --map-bg-c: #ebe3d6;
+  --surface: #ffffff;
+  --text: #1a1a1a;
+  --ui-bg: rgba(255, 255, 255, 0.95);
+  --ui-solid: #ffffff;
+  --ui-text: #1a1a1a;
+  --ui-muted: #5b544b;
+  --ui-border: #8a8175;
+  --focus-ring: #a83a00;
+  --focus-outer: #ffffff;
+  --track: #cfc7bb;
+  --accent-ui: #a83a00;
 }
 
 * {
@@ -79,9 +121,9 @@ td small {
 
 /* Two-tone focus ring: visible on both the cream cards and the dark map. */
 :focus-visible {
-  outline: 3px solid #121212;
+  outline: 3px solid var(--focus-outer);
   outline-offset: 2px;
-  box-shadow: 0 0 0 6px #ffd21f;
+  box-shadow: 0 0 0 6px var(--focus-ring);
 }
 
 .dark :focus-visible,
@@ -119,8 +161,8 @@ body {
   margin: 0;
   padding-top: var(--pad-top);
   padding-bottom: var(--pad-bottom);
-  background: var(--ink);
-  color: var(--ink);
+  background: var(--page-bg);
+  color: var(--text);
   font: 400 17px/1.5 Poppins, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -139,7 +181,7 @@ textarea {
   width: calc(100vw - min(48vw, 720px));
   height: 100vh;
   background:
-    radial-gradient(120% 90% at 70% 20%, #1d1a17 0%, #121212 55%, #0d0d0d 100%);
+    radial-gradient(120% 90% at 70% 20%, var(--map-bg-a) 0%, var(--map-bg-b) 55%, var(--map-bg-c) 100%);
   overflow: hidden;
   z-index: 1;
 }
@@ -348,8 +390,8 @@ textarea {
 #tip {
   position: fixed;
   pointer-events: none;
-  background: var(--cream);
-  color: var(--ink);
+  background: var(--surface);
+  color: var(--text);
   padding: 5px 10px;
   font-weight: 600;
   font-size: 14px;
@@ -371,6 +413,34 @@ textarea {
   align-items: flex-end;
   gap: 8px;
   z-index: 3;
+}
+
+/* Theme switch sits with the other map controls and works in both themes. */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line-ui);
+  background: var(--ui-bg);
+  color: var(--ui-text);
+  font: 600 12px Poppins, sans-serif;
+  padding: 6px 9px;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  border-color: var(--or-ink);
+  background: var(--ui-solid);
+  color: var(--ui-text);
+}
+
+.theme-toggle-icon {
+  font-size: 15px;
+  line-height: 1;
+  color: var(--accent-ui);
 }
 
 .layers {
@@ -514,7 +584,7 @@ textarea {
 }
 
 .pc-filter-head small {
-  color: #a9a29a;
+  color: var(--mute);
   font-size: 10px;
   overflow-wrap: anywhere;
 }
@@ -526,7 +596,7 @@ textarea {
 
 .pc-filter-status {
   margin: 6px 0 0;
-  color: #a9a29a;
+  color: var(--mute);
 }
 
 .map-bans {
@@ -738,7 +808,7 @@ textarea {
 .card {
   pointer-events: auto;
   width: 100%;
-  background: var(--cream);
+  background: var(--surface);
   padding: 28px 30px;
   border-top: 6px solid var(--or);
   transform: translateY(6px);
@@ -1763,7 +1833,7 @@ body.show-map-bans #map-bans { display: block; }
   display: none;
   overflow: hidden;
   background:
-    radial-gradient(90% 80% at 50% 48%, #1d1a17 0%, #121212 72%, #0d0d0d 100%);
+    radial-gradient(90% 80% at 50% 48%, var(--map-bg-a) 0%, var(--map-bg-b) 72%, var(--map-bg-c) 100%);
 }
 
 #network-svg {
@@ -2283,3 +2353,120 @@ body.show-map-bans #map-bans { display: block; }
     transition: none !important;
   }
 }
+
+/* ---------------------------------------------------------------- light mode */
+[data-theme='light'] .card {
+  border: 1px solid var(--line);
+}
+
+/* Pale land with dark outlines replaces the dark map canvas. */
+[data-theme='light'] .ac { fill: #e6dfd3; stroke: #8a8175; }
+[data-theme='light'] .dt { fill: #efe8db; stroke: #8a8175; }
+[data-theme='light'] .pc { stroke: #6f6559; }
+[data-theme='light'] .sd { stroke: #8a8175; }
+[data-theme='light'] .v { stroke: #ffffff; }
+[data-theme='light'] [data-m='drill'] .ac { fill: #e6dfd3; stroke: #8a8175; }
+[data-theme='light'] [data-m='drill'] .dt { stroke: #8a8175; }
+[data-theme='light'] .gpmesh { stroke: #6f6559; }
+[data-theme='light'] .tier-dot,
+[data-theme='light'] .hq { stroke: #1a1a1a; }
+
+/* White strokes were only legible on the dark canvas. */
+[data-theme='light'] [data-m='campaign'] .dt.on,
+[data-theme='light'] [data-m='panchayat'] .dt.on,
+[data-theme='light'] .ac.hover,
+[data-theme='light'] .dt.hover,
+[data-theme='light'] .sd.hover,
+[data-theme='light'] .v:hover,
+[data-theme='light'] .v.hot,
+[data-theme='light'] .tier-dot:hover,
+[data-theme='light'] .tier-dot.on {
+  stroke: #1a1a1a;
+}
+[data-theme='light'] [data-m='pc'] .pc.on { stroke: #8a3d10; }
+[data-theme='light'] [data-m='pc'] .ac.pc-match { stroke: #a83a00; }
+
+/* Controls, legends and callouts share one light surface. */
+[data-theme='light'] .layers > button,
+[data-theme='light'] .layer-group > summary,
+[data-theme='light'] .layer-menu,
+[data-theme='light'] .layer-menu button,
+[data-theme='light'] .map-pc-filter select,
+[data-theme='light'] .legend,
+[data-theme='light'] .mapbtns button,
+[data-theme='light'] .map-bans,
+[data-theme='light'] #panchayat-view .panchayat-overlay,
+[data-theme='light'] .network-zoom-btns button,
+[data-theme='light'] .network-heading,
+[data-theme='light'] .network-legend,
+[data-theme='light'] .influence-panel,
+[data-theme='light'] .zoom-hint {
+  background: var(--ui-bg);
+  border-color: var(--ui-border);
+  color: var(--ui-text);
+  box-shadow: 0 6px 24px rgba(28, 20, 12, 0.16);
+}
+
+[data-theme='light'] .layer-group.has-active > summary {
+  color: var(--accent-ui);
+}
+[data-theme='light'] .layers > button:hover,
+[data-theme='light'] .layer-group > summary:hover,
+[data-theme='light'] .mapbtns button:hover,
+[data-theme='light'] .network-zoom-btns button:hover,
+[data-theme='light'] .network-zoom-btns button:focus-visible {
+  color: var(--accent-ui);
+}
+[data-theme='light'] .layer-menu button:hover,
+[data-theme='light'] .layer-menu button:focus-visible {
+  border-color: var(--accent-ui);
+  background: #fff4e8;
+  color: var(--ui-text);
+}
+
+[data-theme='light'] .legend .ttl,
+[data-theme='light'] #mapstat b,
+[data-theme='light'] .map-ban b,
+[data-theme='light'] .network-k,
+[data-theme='light'] #panchayat-readout .pr-value,
+[data-theme='light'] #network-reheat {
+  color: var(--accent-ui);
+}
+
+[data-theme='light'] .map-ban span,
+[data-theme='light'] .map-gauge-center span,
+[data-theme='light'] #mapstat,
+[data-theme='light'] #panchayat-readout,
+[data-theme='light'] #panchayat-readout small,
+[data-theme='light'] .network-heading p:last-child,
+[data-theme='light'] .network-label,
+[data-theme='light'] .influence-panel p,
+[data-theme='light'] .influence-legend {
+  color: var(--ui-muted);
+}
+[data-theme='light'] .map-gauge-center b,
+[data-theme='light'] #panchayat-readout b,
+[data-theme='light'] .influence-panel h3,
+[data-theme='light'] .influence-close,
+[data-theme='light'] .network-heading h2 {
+  color: var(--ui-text);
+}
+[data-theme='light'] .map-bans-row { border-top-color: var(--ui-border); }
+[data-theme='light'] .map-gauge-track { stroke: var(--track); }
+[data-theme='light'] .influence-panel { border-top-color: var(--accent-ui); }
+
+/* Network text and links need darker ink once the canvas is light. */
+[data-theme='light'] .network-cell-label,
+[data-theme='light'] .network-labels text,
+[data-theme='light'] .network-cluster-label {
+  fill: #1a1a1a;
+  stroke: #ffffff;
+}
+[data-theme='light'] .network-edges path.assembly {
+  stroke: #8a3d10;
+  stroke-opacity: 0.7;
+}
+[data-theme='light'] .network-edges path.village { stroke: #a83a00; }
+[data-theme='light'] .network-edges path.panchayat { stroke: #c2410c; }
+[data-theme='light'] .network-team circle.selected { stroke: #1a1a1a; }
+[data-theme='light'] .network-team circle:focus-visible { stroke: #a83a00; }

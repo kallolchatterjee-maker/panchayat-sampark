@@ -12,6 +12,18 @@ const check = (label, condition, detail = '') => {
   if (!condition) failures.push(`${label}${detail ? ` — ${detail}` : ''}`);
 };
 
+// WCAG relative luminance / contrast ratio, used to guard the theme palette.
+function contrastRatio(a, b) {
+  const luminance = (hex) => {
+    const [r, g, bl] = hex.match(/\w\w/g).map((v) => parseInt(v, 16) / 255)
+      .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+  };
+  const la = luminance(a);
+  const lb = luminance(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
 const { app, store } = createApp();
 const server = app.listen(0, '127.0.0.1');
 await new Promise((resolve, reject) => {
@@ -239,6 +251,7 @@ try {
     ['/js/main.js', 'createMap'],
     ['/js/map.js', 'createMap'],
     ['/js/network.js', 'createVillageNetwork'],
+    ['/js/theme.js', 'theme-toggle'],
     ['/vendor/d3.min.js', 'd3'],
     ['/vendor/topojson-client.min.js', 'topojson'],
   ]) {
@@ -246,6 +259,37 @@ try {
     const body = await asset.text();
     check(`asset ${path} is served`, asset.status === 200 && body.includes(needle), String(asset.status));
   }
+
+  // ------------------------------------------------------------------ theming
+  const cssText = readFileSync(new URL('../public/css/app.css', import.meta.url), 'utf8');
+  check('light mode toggle is rendered',
+    html.includes('id="theme-toggle"') && html.includes('class="theme-toggle-icon"'));
+  check('light theme tokens and overrides are defined',
+    cssText.includes("[data-theme='light']") && cssText.includes('--page-bg') && cssText.includes('--accent-ui'));
+  check('theme is applied before CSS paints',
+    html.includes("dataset.theme = saved === 'light' ? 'light' : 'dark'") && html.includes('/js/theme.js'));
+
+  // WCAG AA: normal text >= 4.5:1; focus rings and UI borders >= 3:1.
+  const aaText = [
+    ['body text on cream', '#121212', '#f5f2ec'],
+    ['muted text on cream', '#6b655c', '#f5f2ec'],
+    ['orange ink on cream', '#b03a00', '#f5f2ec'],
+    ['body text on light card', '#1a1a1a', '#ffffff'],
+    ['muted text on light card', '#5b544b', '#ffffff'],
+    ['accent text on light card', '#a83a00', '#ffffff'],
+    ['muted text on light page', '#5b544b', '#efe9df'],
+    ['ui text on dark chip', '#e8e2d8', '#121212'],
+    ['ui text on light chip', '#1a1a1a', '#ffffff'],
+  ];
+  const aaUi = [
+    ['dark focus ring', '#ffd21f', '#121212'],
+    ['light focus ring', '#a83a00', '#ffffff'],
+    ['light ui border', '#8a8175', '#ffffff'],
+  ];
+  check('WCAG AA text contrast', aaText.every(([, a, b]) => contrastRatio(a, b) >= 4.5),
+    aaText.filter(([, a, b]) => contrastRatio(a, b) < 4.5).map(([name]) => name).join(', '));
+  check('WCAG AA focus and UI contrast', aaUi.every(([, a, b]) => contrastRatio(a, b) >= 3),
+    aaUi.filter(([, a, b]) => contrastRatio(a, b) < 3).map(([name]) => name).join(', '));
 
   const notFound = await get('/does-not-exist');
   check('unknown page returns 404', notFound.status === 404, String(notFound.status));

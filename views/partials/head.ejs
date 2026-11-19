@@ -9,8 +9,20 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="/css/app.css?v=<%= vm.v %>&amp;ui=24">
+<script>
+  // Apply the saved theme before CSS paints so the page never flashes.
+  (function () {
+    try {
+      var saved = localStorage.getItem('ps-theme');
+      document.documentElement.dataset.theme = saved === 'light' ? 'light' : 'dark';
+    } catch (e) {
+      document.documentElement.dataset.theme = 'dark';
+    }
+  })();
+</script>
+<link rel="stylesheet" href="/css/app.css?v=<%= vm.v %>&amp;ui=25">
 <script src="/js/zoom-check.js" defer></script>
+<script src="/js/theme.js" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#steps">मुख्य सामग्री पर जाएँ</a>
