@@ -183,18 +183,32 @@ export function createMap({ boot }) {
   // root-relative URL to the project's base path.
   const fetchAsset = (name) => d3.json(`/${name}?v=${boot.v}`);
 
-  async function loadBaseLayers() {
-    const [districtTopo, pcTopo, acTopo, zones] = await Promise.all([
-      fetchJson('districts.topo.json'),
-      fetchJson('parliament.topo.json'),
-      fetchJson('assembly.topo.json'),
-      fetchAsset('up-kshetra.json'),
-    ]);
-    const first = (topo) => topojson.feature(topo, topo.objects[Object.keys(topo.objects)[0]]);
-    cache.features.districts = first(districtTopo);
-    cache.features.parliament = first(pcTopo);
-    cache.features.assembly = first(acTopo);
-    cache.zones = zones;
+  async function loadZones() {
+    // The hero only needs the six zone polygons. Load them on their own so the
+    // opening view is never held back by the much larger boundary files.
+    cache.zones = await fetchAsset('up-kshetra.json');
+  }
+
+  let baseLayersPromise = null;
+  function ensureBaseLayers() {
+    if (!baseLayersPromise) {
+      baseLayersPromise = (async () => {
+        const [districtTopo, pcTopo, acTopo] = await Promise.all([
+          fetchJson('districts.topo.json'),
+          fetchJson('parliament.topo.json'),
+          fetchJson('assembly.topo.json'),
+        ]);
+        const first = (topo) =>
+          topojson.feature(topo, topo.objects[Object.keys(topo.objects)[0]]);
+        cache.features.districts = first(districtTopo);
+        cache.features.parliament = first(pcTopo);
+        cache.features.assembly = first(acTopo);
+        // Redraw with the finer geometry now available; campaign mode keeps it
+        // hidden, so the hero view does not change.
+        resize();
+      })();
+    }
+    return baseLayersPromise;
   }
 
   async function ensureSubdistricts() {
@@ -226,6 +240,8 @@ export function createMap({ boot }) {
 
   // -------------------------------------------------------------------- render
   function drawBase() {
+    // The hero paints straight from the zone asset before these arrive.
+    if (!cache.features.districts || !cache.features.parliament || !cache.features.assembly) return;
     const { path } = state;
 
     layers.districts
@@ -421,12 +437,12 @@ export function createMap({ boot }) {
     labels
       .append('text')
       .attr('class', 'zone-label-name')
-      .attr('dy', '-0.1em')
+      .attr('dy', '-0.15em')
       .text((f) => f.properties.name);
     labels
       .append('text')
       .attr('class', 'zone-label-value')
-      .attr('dy', '1.15em')
+      .attr('dy', '1.25em')
       .text((f) => `${fmt(f.properties.appointed)} · ${f.properties.share}%`);
   }
 
@@ -738,11 +754,11 @@ export function createMap({ boot }) {
     const rect = mapEl.getBoundingClientRect();
     state.width = Math.max(320, rect.width);
     state.height = Math.max(320, rect.height);
+    if (!cache.zones && !cache.features.assembly) return;
+    // Fit to the six zones alone on the opening view; adding the 403 assembly
+    // polygons here would delay the first paint without changing the framing.
     const extent = cache.zones
-      ? {
-          type: 'FeatureCollection',
-          features: [...cache.features.assembly.features, ...cache.zones.features],
-        }
+      ? { type: 'FeatureCollection', features: cache.zones.features }
       : cache.features.assembly;
     state.projection = d3
       .geoMercator()
@@ -770,6 +786,12 @@ export function createMap({ boot }) {
 
   // -------------------------------------------------------------------- modes
   async function setMode(mode) {
+    // Every mode except the zone hero and the full-width panels needs the
+    // boundary geometry. Await it here so a fast scroll during boot still lands
+    // on a fully drawn map.
+    if (mode !== 'campaign' && mode !== 'network' && mode !== 'team') {
+      await ensureBaseLayers();
+    }
     state.mode = mode;
     svg.attr('data-m', mode);
     if (descEl) descEl.textContent = mode === 'campaign' ? zoneDescription() : defaultDesc;
@@ -1052,24 +1074,30 @@ export function createMap({ boot }) {
     });
 
     let resizeTimer;
-    window.addEventListener('resize', () => {
+    const scheduleMapResize = () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
         const rect = mapEl.getBoundingClientRect();
-        if (Math.abs(rect.width - state.width) < 4) return;
+        if (Math.abs(rect.width - state.width) < 4 && Math.abs(rect.height - state.height) < 4) return;
         resize();
         flyTo(null, 0);
       }, 140);
-    });
+    };
+    window.addEventListener('resize', scheduleMapResize);
+    // Fonts and fixed positioning can settle after the first paint; redraw as
+    // soon as the map box really changes instead of waiting for a scroll.
+    if ('ResizeObserver' in window) new ResizeObserver(scheduleMapResize).observe(mapEl);
   }
 
   const ready = (async () => {
-    await loadBaseLayers();
+    await loadZones();
     state.ready = true;
     resize();
     initZoom();
     wireControls();
     await setMode('campaign');
+    // Boundary layers are optional for the hero; fetch them after it is live.
+    ensureBaseLayers().catch((error) => console.error('Base layers failed', error));
   })();
 
   return {

@@ -262,6 +262,18 @@ textarea {
   touch-action: none;
 }
 
+/* The opening view is the six-zone hero. Hide finer boundaries in markup so
+   they never flash over the polygons while the D3 assets are still loading. */
+#svg[data-m='campaign'] #gd,
+#svg[data-m='campaign'] #gp,
+#svg[data-m='campaign'] #ga,
+#svg[data-m='campaign'] #gs,
+#svg[data-m='campaign'] #gg,
+#svg[data-m='campaign'] #gv,
+#svg[data-m='campaign'] #gt {
+  display: none;
+}
+
 #g {
   transform-origin: 0 0;
 }
@@ -1661,18 +1673,19 @@ input::placeholder,
      the translucent zone fill underneath it. */
   paint-order: stroke fill;
   stroke: var(--zone-halo);
-  stroke-width: 3.5px;
+  stroke-width: 5px;
   stroke-linejoin: round;
 }
 .zone-label-name {
   fill: var(--zone-text);
-  font-size: 15px;
+  font-size: clamp(19px, 1.6vw, 24px);
   font-weight: 800;
 }
 .zone-label-value {
   fill: var(--zone-text-soft);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: clamp(16px, 1.3vw, 20px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .org-tree { margin: 8px 0 14px; }
@@ -2195,6 +2208,15 @@ input::placeholder,
 
   .tile span {
     font-size: 10px;
+  }
+
+  /* Smaller map, but the numbers still stay comfortably legible. */
+  .zone-label-name {
+    font-size: clamp(16px, 4.4vw, 19px);
+  }
+
+  .zone-label-value {
+    font-size: clamp(14px, 3.8vw, 16px);
   }
 
   .chart {

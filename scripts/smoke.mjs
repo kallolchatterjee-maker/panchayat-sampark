@@ -106,6 +106,7 @@ try {
   check('district selector lists every assembly district', districts.length === 75 && districts.every((name) => html.includes(`value="${name}"`)));
   check('hero drives the zone appointment map',
     html.includes('data-m="campaign" id="hero"') &&
+    html.includes('<svg id="svg" data-m="campaign"') &&
     html.includes('data-layer="campaign" aria-pressed="true"') &&
     html.includes('id="gz"'));
   check('hero BAN strip is removed', !html.includes('ban-strip') && !html.includes('class="ban"'));
@@ -341,6 +342,25 @@ try {
     mapSource.includes("layers.assembly.style('display', outlineHidden ? 'none' : null)") &&
     mapSource.includes("layers.parliament.style('display', outlineHidden ? 'none' : null)") &&
     mapSource.includes("layers.districts.style('display', zoneView ? 'none' : null)"));
+  check('zone view is the initial paint, not a scroll side effect',
+    html.includes('<svg id="svg" data-m="campaign"') &&
+    cssText.includes("#svg[data-m='campaign'] #gd,") &&
+    cssText.includes("#svg[data-m='campaign'] #gp,") &&
+    cssText.includes("#svg[data-m='campaign'] #ga,"));
+  check('zone geometry is fetched before the larger boundary files',
+    mapSource.includes("cache.zones = await fetchAsset('up-kshetra.json')") &&
+    mapSource.indexOf('await loadZones()') < mapSource.indexOf('ensureBaseLayers().catch') &&
+    !mapSource.includes('const [districtTopo, pcTopo, acTopo, zones]'));
+  check('map redraws when its box settles without needing a scroll',
+    mapSource.includes('new ResizeObserver(scheduleMapResize).observe(mapEl)') &&
+    mainSource.includes('applyScrollState(true)') &&
+    !mainSource.includes('requestAnimationFrame(applyScrollState)'));
+  const zoneNameFont = Number(cssText.match(/\.zone-label-name\s*\{[^}]*font-size:\s*clamp\((\d+)px/)?.[1] ?? 0);
+  const zoneValueFont = Number(cssText.match(/\.zone-label-value\s*\{[^}]*font-size:\s*clamp\((\d+)px/)?.[1] ?? 0);
+  check('zone metrics are legible for older readers',
+    zoneNameFont >= 18 && zoneValueFont >= 15 &&
+    cssText.includes('stroke-width: 5px') &&
+    cssText.includes('font-variant-numeric: tabular-nums'));
 
   check('light mode toggle is rendered',
     html.includes('id="theme-toggle"') && html.includes('class="theme-toggle-icon"') &&

@@ -2,7 +2,7 @@
 // drill-down panel, village search and the density scatter.
 const boot = JSON.parse(document.getElementById('boot').textContent);
 const [{ createMap }, { createVillageNetwork }] = await Promise.all([
-  import(`./map.js?v=${encodeURIComponent(boot.v)}&ui=25`),
+  import(`./map.js?v=${encodeURIComponent(boot.v)}&ui=26`),
   import(`./network.js?v=${encodeURIComponent(boot.v)}&ui=24`),
 ]);
 const nf = new Intl.NumberFormat('en-IN');
@@ -240,14 +240,14 @@ function pickStep() {
   return found;
 }
 
-function applyScrollState() {
+function applyScrollState(force = false) {
   scrollQueued = false;
   const step = pickStep();
-  if (!step || step === currentStep) return;
+  if (!step || (!force && step === currentStep)) return;
   currentStep = step;
   for (const candidate of steps) candidate.classList.toggle('on', candidate === step);
   const mode = step.dataset.m || 'dt';
-  if (map.mode !== mode) map.setMode(mode);
+  if (force || map.mode !== mode) map.setMode(mode);
   if (mode === 'network') villageNetwork?.show();
   else villageNetwork?.hide();
   // The team section takes the full width and replaces the sticky map.
@@ -259,7 +259,7 @@ function applyScrollState() {
 function onScroll() {
   if (scrollQueued) return;
   scrollQueued = true;
-  requestAnimationFrame(applyScrollState);
+  requestAnimationFrame(() => applyScrollState());
 }
 
 // ------------------------------------------------------------------- drilldown
@@ -701,7 +701,9 @@ window.addEventListener('resize', () => {
 
 map.ready.then(() => {
   setActiveTier(map.tier);
-  applyScrollState();
+  // The map has just finished its first paint; force the current scroll step
+  // to sync instead of skipping because it was marked current while loading.
+  applyScrollState(true);
   renderScatter();
   lastScatterWidth = document.getElementById('scatter')?.clientWidth ?? 0;
 });
