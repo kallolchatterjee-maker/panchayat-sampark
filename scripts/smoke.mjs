@@ -104,7 +104,14 @@ try {
   check('comparison card is wired to the district selector', html.includes('data-district-select') && html.includes('data-assembly-chart'));
   const districts = [...new Set(store.acs.map((ac) => ac.district))];
   check('district selector lists every assembly district', districts.length === 75 && districts.every((name) => html.includes(`value="${name}"`)));
-  check('default map mode is the campaign choropleth', html.includes('data-m="campaign" id="hero"') && html.includes('data-layer="campaign" aria-pressed="true"'));
+  check('hero drives the zone appointment map',
+    html.includes('data-m="campaign" id="hero"') &&
+    html.includes('data-layer="campaign" aria-pressed="true"') &&
+    html.includes('id="gz"'));
+  check('hero BAN strip is removed', !html.includes('ban-strip') && !html.includes('class="ban"'));
+  check('hero carries the campaign introduction',
+    html.includes('class="hero-intro"') && html.includes('2026 पंचायत अभियान') &&
+    html.includes('छह क्षेत्रों में काम करता है'));
 
   const bootPayload = JSON.parse(html.match(/<script type="application\/json" id="boot">([\s\S]*?)<\/script>/)[1]);
   check('district rows carry the campaign success metric', bootPayload.districts?.length === 75 && bootPayload.districts.every((row) => Number.isFinite(row[7])));
@@ -129,7 +136,11 @@ try {
   const networkSource = readFileSync(new URL('../public/js/network.js', import.meta.url), 'utf8');
   const demoProgressTokens = ['id="hero-gauge"', 'id="map-bans"', 'id="ban-current"', '(डेमो)', 'अभियान प्रगति', 'गहराई = प्रगति', 'गहराई: अभियान प्रगति'];
   check('demo progress gauges and numbers are hidden', demoProgressTokens.every((token) => !html.includes(token) && !mapSource.includes(token) && !mainSource.includes(token)));
-  check('campaign choropleth uses coverage without demo progress', mapSource.includes('campaignScale') && mapSource.includes('campaignOpacity') && !mapSource.includes('setProgress') && !mainSource.includes('map.setProgress('));
+  check('zone appointment map replaces the demo progress layer',
+    mapSource.includes('up-kshetra.json') && mapSource.includes('drawZones') &&
+    mapSource.includes('zone-label-value') && mapSource.includes('zoneDescription') &&
+    !mapSource.includes('campaignScale') && !mapSource.includes('campaignOpacity') &&
+    !mapSource.includes('setProgress') && !mainSource.includes('map.setProgress('));
   check('village network dataviz is still wired', mainSource.includes('createVillageNetwork') && networkSource.includes('network-cells') && networkSource.includes('network-edges') && networkSource.includes('renderInfluenceDetail'));
   check('village network controls and influence panel are rendered', ['network-district', 'network-block', 'network-status', 'network-svg', 'influence-panel'].every((id) => html.includes(`id="${id}"`)));
   check('gram network uses force links and repulsion', ['forceLink', 'forceManyBody', 'buildCellLinks', 'buildMemberLinks', 'alphaDecay'].every((token) => networkSource.includes(token)));
@@ -260,6 +271,7 @@ try {
     ['/js/theme.js', 'theme-toggle'],
     ['/js/team-appointments.js', 'team-tree'],
     ['/team-appointments.json', '"zoneOrder"'],
+    ['/up-kshetra.json', '"total"'],
     ['/vendor/d3.min.js', 'd3'],
     ['/vendor/topojson-client.min.js', 'topojson'],
   ]) {
@@ -273,6 +285,10 @@ try {
   const tileRule = cssText.match(/\.tile\s*\{([^}]*)\}/)?.[1] ?? '';
   check('stat tiles are chevron shaped', html.includes('class="tile"') &&
     tileRule.includes('clip-path: polygon(') && tileRule.includes('100% 50%'));
+  check('hero intro and zone label styles are defined',
+    cssText.includes('.hero-intro') && cssText.includes('.zone-label-name') &&
+    cssText.includes('--zone-halo') &&
+    !cssText.includes('.ban-strip') && !/\.ban\s*\{/.test(cssText));
 
   // Team appointment showcase (Data/Tracker.xlsx sheet 3, materialised as JSON).
   const teamData = JSON.parse(readFileSync(new URL('../public/team-appointments.json', import.meta.url), 'utf8'));
@@ -299,6 +315,22 @@ try {
     ['team-person-meta', 'सत्यापित', 'असत्यापित', 'सत्यापन: —', 'SARAL: हाँ', 'SARAL: नहीं'].every((token) => teamScript.includes(token)) &&
     ['team-person-meta', 'team-badge-verified', 'team-badge-unverified', 'team-badge-saral-yes'].every((token) => cssText.includes(token)) &&
     html.includes('team-appointments.js?v='));
+
+  // Six-zone hero map (Data/up_kshetra.geojson → committed public asset).
+  const zoneData = JSON.parse(readFileSync(new URL('../public/up-kshetra.json', import.meta.url), 'utf8'));
+  check('zone asset has exactly six campaign zones',
+    zoneData.features.length === 6 && zoneData.total === teamData.totals.appointed &&
+    ['पश्चिम', 'ब्रज', 'अवध', 'कानपुर', 'गोरखपुर', 'काशी'].every((name) =>
+      zoneData.features.some((f) => f.properties.name === name)));
+  // The one appointment not attributed to a zone is the Pradesh-level post.
+  check('zone appointment shares add up to the full team',
+    teamData.rows.filter((row) => row.level === 'Pradesh').length === 1 &&
+    zoneData.features.reduce((sum, f) => sum + f.properties.appointed, 0) ===
+      teamData.totals.appointed - 1 &&
+    zoneData.features.every((f) => f.properties.share > 0 && f.properties.share < 100 && f.geometry));
+  check('zone geometry and labels are wired into svg#svg',
+    html.includes('id="gz"') && mapSource.includes("select('#gz')") &&
+    cssText.includes('.zone-label') && cssText.includes('.zone {'));
 
   check('light mode toggle is rendered',
     html.includes('id="theme-toggle"') && html.includes('class="theme-toggle-icon"') &&

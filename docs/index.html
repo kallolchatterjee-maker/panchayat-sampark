@@ -20,7 +20,7 @@
     }
   })();
 </script>
-<link rel="stylesheet" href="./css/app.css?v=mwn9hr2h&amp;ui=30">
+<link rel="stylesheet" href="./css/app.css?v=mwn9hr2h&amp;ui=31">
 <script src="./js/zoom-check.js" defer></script>
 <script src="./js/theme.js?v=mwn9hr2h&amp;ui=2" defer></script>
 </head>
@@ -31,8 +31,9 @@
 <div id="map" role="region" aria-label="उत्तर प्रदेश का इंटरैक्टिव नक्शा और परत नियंत्रण">
   <svg id="svg" data-m="dt" role="img" aria-labelledby="map-svg-title" aria-describedby="map-svg-desc">
     <title id="map-svg-title">उत्तर प्रदेश का विधानसभा और बूथ नक्शा</title>
-    <desc id="map-svg-desc">डिफ़ॉल्ट रूप से ज़िलों का रंग बूथ-गाँव लिंक कवरेज दिखाता है। परत बदलने के लिए नक्शे के ऊपर दिए बटन और विवरण के लिए ड्रिल-डाउन विधानसभा चयन का उपयोग करें।</desc>
+    <desc id="map-svg-desc">डिफ़ॉल्ट रूप से छह क्षेत्रों की नियुक्ति हिस्सेदारी दिखती है। परत बदलने के लिए नक्शे के ऊपर दिए बटन और विवरण के लिए ड्रिल-डाउन विधानसभा चयन का उपयोग करें।</desc>
     <g id="g">
+      <g id="gz"></g>
       <g id="gd"></g>
       <g id="gp"></g>
       <g id="ga"></g>
@@ -58,7 +59,7 @@
     </button>
 
     <div class="layers" role="group" aria-label="नक्शे की परतें">
-      <button type="button" class="layer-quick" data-layer="campaign" aria-pressed="true">अभियान</button>
+      <button type="button" class="layer-quick" data-layer="campaign" aria-pressed="true">क्षेत्र · नियुक्ति</button>
 
       <details class="layer-group" data-group-label="प्रशासनिक">
         <summary aria-label="प्रशासनिक परतें चुनें">
@@ -323,20 +324,11 @@
     <p class="k"><span lang="en">UTTAR PRADESH · 2026</span></p>
     <h1>उत्तर प्रदेश<br><span class="or">पंचायत अभियान</span></h1>
 
-    <div class="ban-strip" id="hero-bans" role="group" aria-label="मुख्य अभियान संख्याएँ">
-      <div class="ban">
-        <b>1,01,653</b>
-        <span>गाँव</span>
-      </div>
-      <div class="ban">
-        <b>55,906</b>
-        <span>ग्राम पंचायत</span>
-      </div>
-      <div class="ban">
-        <b>1,77,516</b>
-        <span>बूथ</span>
-      </div>
-    </div>
+    <p class="hero-intro">
+      2026 पंचायत अभियान उत्तर प्रदेश के हर गाँव तक टीम पहुँचाने का प्रयास है।
+      पूरा राज्य छह क्षेत्रों में काम करता है। नक्शे पर अपने क्षेत्र को चुनकर
+      वहाँ की नियुक्ति हिस्सेदारी देखें।
+    </p>
 
     <div class="tiles">
       <div class="tile"><b>403</b><span>विधानसभा</span></div>
@@ -2160,7 +2152,7 @@
 <script src="./vendor/d3.min.js"></script>
 <script src="./vendor/topojson-client.min.js"></script>
 <script src="./js/static-api.js"></script>
-<script type="module" src="./js/main.js?v=mwn9hr2h&amp;ui=24"></script>
+<script type="module" src="./js/main.js?v=mwn9hr2h&amp;ui=25"></script>
 <script src="./js/team-appointments.js?v=mwn9hr2h&amp;ui=2"></script>
 </body>
 </html>

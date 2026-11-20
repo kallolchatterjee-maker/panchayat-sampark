@@ -19,6 +19,7 @@ export function createMap({ boot }) {
   const svg = d3.select('#svg');
   const g = d3.select('#g');
   const layers = {
+    zones: d3.select('#gz'),
     districts: d3.select('#gd'),
     parliament: d3.select('#gp'),
     assembly: d3.select('#ga'),
@@ -32,6 +33,8 @@ export function createMap({ boot }) {
   const mapEl = document.getElementById('map');
   const legendEl = document.getElementById('legend');
   const statEl = document.getElementById('mapstat');
+  const descEl = document.getElementById('map-svg-desc');
+  const defaultDesc = descEl?.textContent || '';
 
   const AC = boot.acs;
   const acMeta = new Map(AC.map((a) => [a[0], a]));
@@ -89,6 +92,7 @@ export function createMap({ boot }) {
   };
 
   const cache = {
+    zones: null,
     chunks: new Map(),
     grid: null,
     subdistricts: null,
@@ -110,12 +114,18 @@ export function createMap({ boot }) {
     (boot.districts || []).map((d) => d[1]),
     ORANGE,
   );
-  // Higher coverage = deeper orange.
-  const campaignScale = d3.scaleQuantile(
-    (boot.districts || []).map((d) => d[7] ?? 0),
-    ORANGE,
-  );
-  const campaignOpacity = () => 0.5;
+  // Six zones: a deeper tint means a larger share of all appointments.
+  const ZONE_TINTS = [
+    'rgba(255, 98, 0, 0.22)',
+    'rgba(255, 98, 0, 0.34)',
+    'rgba(255, 98, 0, 0.46)',
+    'rgba(255, 98, 0, 0.58)',
+    'rgba(255, 98, 0, 0.7)',
+  ];
+  const zoneOpacityScale = () => {
+    const max = d3.max(cache.zones?.features || [], (f) => f.properties.share) || 1;
+    return d3.scaleQuantize().domain([0, max]).range([0.22, 0.34, 0.46, 0.58, 0.7]);
+  };
   const pcScale = d3.scaleQuantile(
     (boot.pc || []).map((p) => p[2]),
     ORANGE,
@@ -144,14 +154,6 @@ export function createMap({ boot }) {
   function districtTipText(feature) {
     const agg = districtAggOf(feature);
     const name = agg?.[0] ?? feature.properties.dtname ?? 'ज़िला';
-    if (state.mode === 'campaign') {
-      const coverage = ((agg?.[7] ?? 0) * 100).toFixed(1);
-      return (
-        `${name} · ${coverage}% बूथ-गाँव लिंक कवरेज\n` +
-        `${fmt(agg?.[1] ?? 0)} बूथ · ${fmt(agg?.[2] ?? 0)} गाँव · ${fmt(agg?.[3] ?? 0)} विधानसभा\n` +
-        `क्लिक: ज़िला चुनें`
-      );
-    }
     if (state.mode !== 'panchayat') {
       return `${name} · ${fmt(agg?.[1] ?? 0)} बूथ · ${fmt(agg?.[2] ?? 0)} गाँव`;
     }
@@ -177,17 +179,22 @@ export function createMap({ boot }) {
 
   // -------------------------------------------------------------------- layers
   const fetchJson = (name) => d3.json(`/data/${name}?v=${boot.v}`);
+  // public/ asset mirrored into docs/; the Pages fetch shim rewrites the
+  // root-relative URL to the project's base path.
+  const fetchAsset = (name) => d3.json(`/${name}?v=${boot.v}`);
 
   async function loadBaseLayers() {
-    const [districtTopo, pcTopo, acTopo] = await Promise.all([
+    const [districtTopo, pcTopo, acTopo, zones] = await Promise.all([
       fetchJson('districts.topo.json'),
       fetchJson('parliament.topo.json'),
       fetchJson('assembly.topo.json'),
+      fetchAsset('up-kshetra.json'),
     ]);
     const first = (topo) => topojson.feature(topo, topo.objects[Object.keys(topo.objects)[0]]);
     cache.features.districts = first(districtTopo);
     cache.features.parliament = first(pcTopo);
     cache.features.assembly = first(acTopo);
+    cache.zones = zones;
   }
 
   async function ensureSubdistricts() {
@@ -230,13 +237,13 @@ export function createMap({ boot }) {
       .on('mousemove', (event, d) => showTip(event, districtTipText(d)))
       .on('mouseleave', hideTip)
       .on('click', (event, d) => {
-        if (state.mode !== 'panchayat' && state.mode !== 'campaign') return;
+        if (state.mode !== 'panchayat') return;
         event.stopPropagation();
         selectDistrict(districtAggOf(d)?.[0] ?? d.properties.dtname);
       })
       .on('keydown', (event, d) => {
         if (
-          (state.mode !== 'panchayat' && state.mode !== 'campaign') ||
+          (state.mode !== 'panchayat') ||
           (event.key !== 'Enter' && event.key !== ' ')
         )
           return;
@@ -360,6 +367,69 @@ export function createMap({ boot }) {
       .on('mouseleave', hideTip);
   }
 
+  // ------------------------------------------------------------------- zones
+  function zoneTipText(feature) {
+    const p = feature.properties;
+    return (
+      `${p.name} · ${fmt(p.appointed)} नियुक्तियाँ\n` +
+      `कुल ${fmt(cache.zones?.total || 0)} का ${p.share}% हिस्सा`
+    );
+  }
+
+  function zoneDescription() {
+    if (!cache.zones) return defaultDesc;
+    const parts = cache.zones.features.map(
+      (f) => `${f.properties.name} ${fmt(f.properties.appointed)} नियुक्तियाँ, ${f.properties.share}%`,
+    );
+    return `कुल ${fmt(cache.zones.total)} नियुक्तियों (प्रदेश स्तर सहित) की क्षेत्रवार हिस्सेदारी: ${parts.join('; ')}।`;
+  }
+
+  function drawZones() {
+    if (!cache.zones || !state.path) return;
+    const opacity = zoneOpacityScale();
+    const zones = cache.zones.features;
+
+    const paths = layers.zones
+      .selectAll('path.zone')
+      .data(zones, (f) => f.properties.id)
+      .join('path')
+      .attr('class', 'zone')
+      .attr('d', state.path)
+      .style('fill', '#ff6200')
+      .style('fill-opacity', (f) => opacity(f.properties.share))
+      .on('mousemove', (event, f) => showTip(event, zoneTipText(f)))
+      .on('mouseleave', hideTip)
+      .on('mouseover', function () { d3.select(this).classed('hover', true); })
+      .on('mouseout', function () { d3.select(this).classed('hover', false); });
+
+    paths
+      .selectAll('title')
+      .data((f) => [f])
+      .join('title')
+      .text((f) => zoneTipText(f).replace('\n', ' · '));
+
+    const labels = layers.zones
+      .selectAll('g.zone-label')
+      .data(zones, (f) => f.properties.id)
+      .join('g')
+      .attr('class', 'zone-label')
+      .attr('transform', (f) => {
+        const [x, y] = state.path.centroid(f);
+        return `translate(${x},${y})`;
+      });
+    labels.selectAll('text').remove();
+    labels
+      .append('text')
+      .attr('class', 'zone-label-name')
+      .attr('dy', '-0.1em')
+      .text((f) => f.properties.name);
+    labels
+      .append('text')
+      .attr('class', 'zone-label-value')
+      .attr('dy', '1.15em')
+      .text((f) => `${fmt(f.properties.appointed)} · ${f.properties.share}%`);
+  }
+
   // One bubble per district, sized by the selected tier's metric. The same
   // metric drives the choropleth fill, so the two encodings reinforce each other.
   function drawTierMarkers() {
@@ -429,11 +499,6 @@ export function createMap({ boot }) {
 
   // ------------------------------------------------------------------- scales
   function districtColor(feature) {
-    if (state.mode === 'campaign') {
-      const agg = districtAggOf(feature);
-      if (!agg) return '#2a2a2a';
-      return campaignScale(agg[7] ?? 0);
-    }
     if (state.mode === 'panchayat') {
       const agg = districtAggOf(feature);
       const tier = tierById.get(state.tier);
@@ -466,12 +531,7 @@ export function createMap({ boot }) {
       layers.districts
         .selectAll('path')
         .style('fill', (d) =>
-          state.mode === 'dt' || state.mode === 'panchayat' || state.mode === 'campaign'
-            ? districtColor(d)
-            : null,
-        )
-        .style('fill-opacity', (d) =>
-          state.mode === 'campaign' ? campaignOpacity() : null,
+          state.mode === 'dt' || state.mode === 'panchayat' ? districtColor(d) : null,
         );
       layers.parliament
         .selectAll('path')
@@ -486,12 +546,7 @@ export function createMap({ boot }) {
       .transition()
       .duration(duration)
       .style('fill', (d) =>
-        state.mode === 'dt' || state.mode === 'panchayat' || state.mode === 'campaign'
-          ? districtColor(d)
-          : null,
-      )
-      .style('fill-opacity', (d) =>
-        state.mode === 'campaign' ? campaignOpacity() : null,
+        state.mode === 'dt' || state.mode === 'panchayat' ? districtColor(d) : null,
       );
 
     layers.parliament
@@ -524,8 +579,13 @@ export function createMap({ boot }) {
     let title = '';
     let items = [];
     if (mode === 'campaign') {
-      title = 'अभियान सफलता · बूथ-गाँव लिंक कवरेज';
-      items = quantileItems(campaignScale, (v) => `${(v * 100).toFixed(0)}%`);
+      title = 'नियुक्ति हिस्सेदारी · क्षेत्रवार';
+      const scale = zoneOpacityScale();
+      const bounds = [0, ...scale.quantiles(), scale.domain()[1]];
+      items = ZONE_TINTS.map((color, i) => [
+        color,
+        `${Math.round(bounds[i])}–${Math.round(bounds[i + 1])}%`,
+      ]);
     } else if (mode === 'dt') {
       title = 'बूथ प्रति ज़िला';
       items = quantileItems(districtScale, (v) => fmt(v));
@@ -590,13 +650,14 @@ export function createMap({ boot }) {
 
   function renderStat(mode) {
     const totals = boot.meta.totals;
-    if (mode === 'campaign') {
-      const rows = boot.districts || [];
-      const avg = rows.length
-        ? rows.reduce((sum, row) => sum + (row[7] ?? 0), 0) / rows.length
-        : 0;
+    if (mode === 'campaign' && cache.zones) {
+      const zones = [...cache.zones.features].sort(
+        (a, b) => b.properties.share - a.properties.share,
+      );
+      const lead = zones[0];
       statEl.innerHTML =
-        `<b>${fmt(totals.districts)}</b> ज़िले · औसत लिंक कवरेज <b>${(avg * 100).toFixed(1)}%</b>`;
+        `<b>${fmt(cache.zones.total)}</b> नियुक्तियाँ · <b>${zones.length}</b> क्षेत्र · ` +
+        `सबसे बड़ा हिस्सा ${escHtml(lead.properties.name)} ${lead.properties.share}%`;
     } else if (mode === 'dt') {
       statEl.innerHTML = `<b>${fmt(totals.districts)}</b> ज़िले · <b>${fmt(totals.booths)}</b> बूथ · ज़िले पर बूथ संख्या`;
     } else if (mode === 'panchayat') {
@@ -677,6 +738,12 @@ export function createMap({ boot }) {
     const rect = mapEl.getBoundingClientRect();
     state.width = Math.max(320, rect.width);
     state.height = Math.max(320, rect.height);
+    const extent = cache.zones
+      ? {
+          type: 'FeatureCollection',
+          features: [...cache.features.assembly.features, ...cache.zones.features],
+        }
+      : cache.features.assembly;
     state.projection = d3
       .geoMercator()
       .fitExtent(
@@ -684,10 +751,11 @@ export function createMap({ boot }) {
           [state.width * 0.03, state.height * 0.05],
           [state.width * 0.97, state.height * 0.95],
         ],
-        cache.features.assembly,
+        extent,
       );
     state.path = d3.geoPath(state.projection).pointRadius(2.6);
 
+    drawZones();
     drawBase();
     renderPcSelection();
     drawSubdistricts();
@@ -704,6 +772,7 @@ export function createMap({ boot }) {
   async function setMode(mode) {
     state.mode = mode;
     svg.attr('data-m', mode);
+    if (descEl) descEl.textContent = mode === 'campaign' ? zoneDescription() : defaultDesc;
     updateLayerButtons(mode);
     const networkView = document.getElementById('network-view');
     networkView.style.display = mode === 'network' ? 'block' : 'none';
@@ -717,9 +786,11 @@ export function createMap({ boot }) {
     statEl.style.display = mode === 'network' ? 'none' : '';
     document.querySelector('.mapfoot').style.display = mode === 'network' ? 'none' : '';
 
-    // Both district views let the choropleth fill the whole map: the assembly
-    // and parliament outlines would otherwise sit on top of the filled polygons.
-    const districtPick = mode === 'panchayat' || mode === 'campaign';
+    // The panchayat view lets the district choropleth fill the whole map; the
+    // hero view shows the six zones instead, so both boundary layers step aside.
+    const districtPick = mode === 'panchayat';
+    layers.zones.style('display', mode === 'campaign' ? null : 'none');
+    layers.districts.style('display', mode === 'campaign' ? 'none' : null);
     layers.subdistricts.style('display', mode === 'sd' ? null : 'none');
     layers.grid.style('display', mode === 'villages' ? null : 'none');
     layers.villages.style('display', mode === 'drill' ? null : 'none');
@@ -740,6 +811,7 @@ export function createMap({ boot }) {
     if (mode === 'sd') await ensureSubdistricts();
     if (mode === 'villages') await ensureGrid();
 
+    if (mode === 'campaign') drawZones();
     applyFills();
     drawTierMarkers();
     renderLegend(mode);
@@ -953,10 +1025,7 @@ export function createMap({ boot }) {
           (f) => Number(f.properties.AC_NO) === state.selected,
         );
         if (feature) flyTo(feature);
-      } else if (
-        (state.mode === 'panchayat' || state.mode === 'campaign') &&
-        state.district
-      ) {
+      } else if (state.mode === 'panchayat' && state.district) {
         const feature = cache.features.districts.features.find(
           (f) => districtKeyOf(f.properties.dtname) === state.district,
         );

@@ -35,6 +35,11 @@
   --focus-outer: #121212;
   --track: #34291f;
   --accent-ui: #ffb067;
+  /* Zone map: light text on a dark halo keeps labels AA-legible on any fill. */
+  --zone-line: #ffb067;
+  --zone-halo: #121212;
+  --zone-text: #fff8ee;
+  --zone-text-soft: #ffd7b0;
 
   /* Story cards carry the `dark` class for layout/history, but their colours
      follow the active theme instead of forcing a dark island in light mode. */
@@ -91,6 +96,10 @@
   --focus-outer: #ffffff;
   --track: #cfc7bb;
   --accent-ui: #a83a00;
+  --zone-line: #8a3c0d;
+  --zone-halo: #ffffff;
+  --zone-text: #1a1a1a;
+  --zone-text-soft: #5b544b;
 
   --story-bg: #ffffff;
   --story-text: #1a1a1a;
@@ -290,16 +299,6 @@ textarea {
 
 [data-m='dt'] .dt {
   stroke: #4c3a2d;
-}
-[data-m='campaign'] .dt {
-  stroke: #2a1c12;
-  stroke-width: 0.9;
-  cursor: pointer;
-  transition: fill 0.45s ease, fill-opacity 0.35s ease, stroke 0.4s;
-}
-[data-m='campaign'] .dt.on {
-  stroke: #fff;
-  stroke-width: 1.6;
 }
 [data-m='dt'] .ac {
   stroke: #262626;
@@ -1632,49 +1631,47 @@ input::placeholder,
   white-space: nowrap;
 }
 
-/* ------------------------------------------------------------- hero BANs */
-.ban-strip {
-  display: grid;
-  /* Two columns keep every headline number on one line in the story card.
-     Three columns are only used below when the card is genuinely wide. */
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin: 14px 0 10px;
-}
-.ban {
-  min-width: 0;
-  background: rgba(255, 98, 0, 0.08);
-  border-left: 3px solid var(--story-accent);
-  padding: 8px 10px;
-}
-.ban b {
-  overflow-wrap: normal;
-  word-break: keep-all;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-.ban b {
-  display: block;
-  font: 700 clamp(24px, 2.6vw, 34px)/1 Poppins, sans-serif;
-  letter-spacing: -0.02em;
-  color: var(--story-accent);
-}
-.ban span {
-  display: block;
-  font-size: 12px;
-  line-height: 1.25;
+/* ------------------------------------------- hero intro + six-zone map */
+.hero-intro {
+  margin: 12px 0 4px;
+  font-size: 14px;
+  line-height: 1.6;
   color: var(--story-muted);
 }
 
-/* Only widen to three columns once the card can truly fit the numbers. */
-@media (min-width: 1600px) {
-  .ban-strip {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .ban b {
-    font-size: clamp(26px, 1.75vw, 32px);
-  }
+.zone {
+  stroke: var(--zone-line);
+  stroke-width: 1.3;
+  vector-effect: non-scaling-stroke;
+  transition: fill-opacity 0.4s ease;
 }
+[data-m='campaign'] .zone { cursor: help; }
+.zone.hover { stroke-width: 2; }
+
+.zone-label {
+  pointer-events: none;
+}
+.zone-label text {
+  text-anchor: middle;
+  font-family: Poppins, sans-serif;
+  /* The halo supplies a solid background so label contrast never depends on
+     the translucent zone fill underneath it. */
+  paint-order: stroke fill;
+  stroke: var(--zone-halo);
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+}
+.zone-label-name {
+  fill: var(--zone-text);
+  font-size: 15px;
+  font-weight: 800;
+}
+.zone-label-value {
+  fill: var(--zone-text-soft);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .org-tree { margin: 8px 0 14px; }
 .org-tree h3 { margin-bottom: 4px; }
 .org-tree details { border-bottom: 1px solid var(--story-row-line); }
@@ -2267,7 +2264,6 @@ input::placeholder,
 [data-theme='light'] .hq { stroke: #1a1a1a; }
 
 /* White strokes were only legible on the dark canvas. */
-[data-theme='light'] [data-m='campaign'] .dt.on,
 [data-theme='light'] [data-m='panchayat'] .dt.on,
 [data-theme='light'] .ac.hover,
 [data-theme='light'] .dt.hover,
