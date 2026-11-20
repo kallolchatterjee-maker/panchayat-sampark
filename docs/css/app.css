@@ -1276,6 +1276,60 @@ td small {
   color: #a9a29a;
 }
 
+/* Lok Sabha appointment callout, shown in the map beside the filtered seat. */
+#pc-appointment-view {
+  position: absolute;
+  top: calc(14px + var(--pad-top));
+  left: 16px;
+  z-index: 3;
+  width: min(340px, calc(100% - 32px));
+  display: none;
+  pointer-events: none;
+}
+.pc-appointment-card {
+  padding: 12px 14px;
+  background: rgba(12, 12, 12, 0.9);
+  border: 1px solid #3a2a20;
+  border-top: 3px solid var(--or);
+  color: #e8e2d8;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+}
+.pc-app-k {
+  margin: 0 0 4px;
+  font: 700 12px/1.2 Poppins, sans-serif;
+  letter-spacing: 0.08em;
+  color: #ffd7b0;
+}
+.pc-app-main {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 6px;
+}
+.pc-app-main b {
+  font: 800 34px/1 Poppins, sans-serif;
+  color: var(--or);
+  font-variant-numeric: tabular-nums;
+}
+.pc-app-main span {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.pc-app-line {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #cfc7ba;
+}
+.pc-app-neighbours {
+  padding-top: 6px;
+  border-top: 1px solid #3a2a20;
+  color: #e8e2d8;
+  overflow-wrap: anywhere;
+}
+
 .dark .tile span {
   color: var(--story-muted);
 }
@@ -2178,6 +2232,20 @@ input::placeholder,
     justify-content: flex-start;
   }
 
+  #pc-appointment-view {
+    top: calc(122px + var(--pad-top));
+    left: 10px;
+    width: calc(100vw - 20px);
+  }
+
+  .pc-app-main b {
+    font-size: 28px;
+  }
+
+  .pc-app-line {
+    font-size: 13px;
+  }
+
   .map-pc-filter {
     align-self: flex-start;
     max-width: calc(100vw - 20px);
@@ -2321,6 +2389,7 @@ input::placeholder,
 [data-theme='light'] .legend,
 [data-theme='light'] .mapbtns button,
 [data-theme='light'] #panchayat-view .panchayat-overlay,
+[data-theme='light'] .pc-appointment-card,
 [data-theme='light'] .network-zoom-btns button,
 [data-theme='light'] .network-heading,
 [data-theme='light'] .network-legend,
@@ -2353,8 +2422,17 @@ input::placeholder,
 [data-theme='light'] #mapstat b,
 [data-theme='light'] .network-k,
 [data-theme='light'] #panchayat-readout .pr-value,
-[data-theme='light'] #network-reheat {
+[data-theme='light'] #network-reheat,
+[data-theme='light'] .pc-app-k,
+[data-theme='light'] .pc-app-main b {
   color: var(--accent-ui);
+}
+[data-theme='light'] .pc-app-line,
+[data-theme='light'] .pc-app-neighbours {
+  color: var(--ui-text);
+}
+[data-theme='light'] .pc-app-neighbours {
+  border-color: var(--ui-border);
 }
 
 [data-theme='light'] #mapstat,

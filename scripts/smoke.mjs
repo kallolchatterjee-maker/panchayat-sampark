@@ -135,6 +135,7 @@ try {
   const mainSource = readFileSync(new URL('../public/js/main.js', import.meta.url), 'utf8');
   const mapSource = readFileSync(new URL('../public/js/map.js', import.meta.url), 'utf8');
   const networkSource = readFileSync(new URL('../public/js/network.js', import.meta.url), 'utf8');
+  const cssText = readFileSync(new URL('../public/css/app.css', import.meta.url), 'utf8');
   const demoProgressTokens = ['id="hero-gauge"', 'id="map-bans"', 'id="ban-current"', '(डेमो)', 'अभियान प्रगति', 'गहराई = प्रगति', 'गहराई: अभियान प्रगति'];
   check('demo progress gauges and numbers are hidden', demoProgressTokens.every((token) => !html.includes(token) && !mapSource.includes(token) && !mainSource.includes(token)));
   check('zone appointment map replaces the demo progress layer',
@@ -147,6 +148,35 @@ try {
   check('gram network uses force links and repulsion', ['forceLink', 'forceManyBody', 'buildCellLinks', 'buildMemberLinks', 'alphaDecay'].every((token) => networkSource.includes(token)));
   check('gram network reheat control is rendered and wired', html.includes('id="network-reheat"') && networkSource.includes("getElementById('network-reheat')") && networkSource.includes('reheatLayout'));
   check('Lok Sabha filter is wired to the map and AC list', mapSource.includes('selectPc') && mapSource.includes('pc-match') && mainSource.includes('map.selectPc(') && mainSource.includes('setOnPcSelect'));
+
+  // Selecting a Lok Sabha seat replaces the zone labels with its own appointment
+  // callout plus the AC numbers that touch the seat boundary.
+  const pcData = JSON.parse(readFileSync(new URL('../public/pc-appointments.json', import.meta.url), 'utf8'));
+  const pcRows = Object.values(pcData.pcs);
+  check('Lok Sabha appointment callout is rendered in the map',
+    html.includes('id="pc-appointment-view"') &&
+    ['pc-app-title', 'pc-app-share', 'pc-app-count', 'pc-app-coverage', 'pc-app-neighbours']
+      .every((id) => html.includes(`id="${id}"`)) &&
+    cssText.includes('#pc-appointment-view') &&
+    cssText.includes("[data-theme='light'] .pc-appointment-card"));
+  check('Lok Sabha callout shows both appointment percentages',
+    mapSource.includes('function pcDescription()') &&
+    mapSource.includes('function renderPcAppointments()') &&
+    mapSource.includes('ensurePcAppointments().then(renderPcAppointments)') &&
+    mapSource.includes("pcViewEl.style.display = visible ? 'block' : 'none'") &&
+    mapSource.includes('टीम कवरेज:') &&
+    mapSource.includes('पड़ोसी विधानसभा:'));
+  check('every Lok Sabha seat carries appointment and neighbour data',
+    pcRows.length === 80 &&
+    pcRows.every((row) => row.acCount > 0 && row.acAppointed >= 0 &&
+      row.appointed >= row.acAppointed && row.share >= 0 && row.share < 100 &&
+      row.coverage >= 0 && row.coverage <= 100 && row.neighbours.length > 0 &&
+      row.neighbours.every((no, i, all) => Number.isFinite(no) && (i === 0 || all[i - 1] < no))));
+  check('Lok Sabha totals reconcile with the tracker',
+    pcData.total === 966 &&
+    pcRows.reduce((sum, row) => sum + row.appointed, 0) === 959 &&
+    pcRows.reduce((sum, row) => sum + row.acCount, 0) === 403 &&
+    pcRows.reduce((sum, row) => sum + row.acAppointed, 0) === 321);
 
   check('no unresolved EJS markers', !html.includes('<%'));
 
@@ -273,6 +303,7 @@ try {
     ['/js/team-appointments.js', 'team-tree'],
     ['/team-appointments.json', '"zoneOrder"'],
     ['/up-kshetra.json', '"total"'],
+    ['/pc-appointments.json', '"pcs"'],
     ['/vendor/d3.min.js', 'd3'],
     ['/vendor/topojson-client.min.js', 'topojson'],
   ]) {
@@ -282,7 +313,6 @@ try {
   }
 
   // ------------------------------------------------------------------ theming
-  const cssText = readFileSync(new URL('../public/css/app.css', import.meta.url), 'utf8');
   const tileRule = cssText.match(/\.tile\s*\{([^}]*)\}/)?.[1] ?? '';
   check('stat tiles are chevron shaped', html.includes('class="tile"') &&
     tileRule.includes('clip-path: polygon(') && tileRule.includes('100% 50%'));
@@ -361,6 +391,10 @@ try {
     zoneNameFont >= 18 && zoneValueFont >= 15 &&
     cssText.includes('stroke-width: 5px') &&
     cssText.includes('font-variant-numeric: tabular-nums'));
+  check('campaign legend never calls quantiles on a quantize scale',
+    mapSource.includes('d3.scaleQuantize()') &&
+    !/const scale = zoneOpacityScale\(\);[^}]*scale\.quantiles\(\)/.test(mapSource) &&
+    mapSource.includes('d3.range(ZONE_TINTS.length + 1)'));
 
   check('light mode toggle is rendered',
     html.includes('id="theme-toggle"') && html.includes('class="theme-toggle-icon"') &&

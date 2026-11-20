@@ -35,6 +35,12 @@ export function createMap({ boot }) {
   const statEl = document.getElementById('mapstat');
   const descEl = document.getElementById('map-svg-desc');
   const defaultDesc = descEl?.textContent || '';
+  const pcViewEl = document.getElementById('pc-appointment-view');
+  const pcAppTitle = document.getElementById('pc-app-title');
+  const pcAppShare = document.getElementById('pc-app-share');
+  const pcAppCount = document.getElementById('pc-app-count');
+  const pcAppCoverage = document.getElementById('pc-app-coverage');
+  const pcAppNeighbours = document.getElementById('pc-app-neighbours');
 
   const AC = boot.acs;
   const acMeta = new Map(AC.map((a) => [a[0], a]));
@@ -93,6 +99,7 @@ export function createMap({ boot }) {
 
   const cache = {
     zones: null,
+    pcAppointments: null,
     chunks: new Map(),
     grid: null,
     subdistricts: null,
@@ -182,6 +189,23 @@ export function createMap({ boot }) {
   // public/ asset mirrored into docs/; the Pages fetch shim rewrites the
   // root-relative URL to the project's base path.
   const fetchAsset = (name) => d3.json(`/${name}?v=${boot.v}`);
+
+  let pcAppointmentsPromise = null;
+  function ensurePcAppointments() {
+    if (!pcAppointmentsPromise) {
+      pcAppointmentsPromise = d3
+        .json(`/pc-appointments.json?v=${boot.v}&pc=1`)
+        .then((data) => {
+          cache.pcAppointments = data;
+          return data;
+        })
+        .catch((error) => {
+          console.error('Lok Sabha appointments failed', error);
+          return null;
+        });
+    }
+    return pcAppointmentsPromise;
+  }
 
   async function loadZones() {
     // The hero only needs the six zone polygons. Load them on their own so the
@@ -400,6 +424,41 @@ export function createMap({ boot }) {
     return `कुल ${fmt(cache.zones.total)} नियुक्तियों (प्रदेश स्तर सहित) की क्षेत्रवार हिस्सेदारी: ${parts.join('; ')}।`;
   }
 
+  function pcAppointmentRow() {
+    if (!state.pc || !cache.pcAppointments) return null;
+    return cache.pcAppointments.pcs?.[String(state.pc)] || null;
+  }
+
+  function pcDescription() {
+    const row = pcAppointmentRow();
+    if (!row) return defaultDesc;
+    const neighbours = row.neighbours.length ? row.neighbours.join(', ') : 'none';
+    return (
+      `PC ${row.no} ${row.name}: कुल ${fmt(cache.pcAppointments.total)} नियुक्तियों (प्रदेश/क्षेत्र/ज़िला स्तर सहित) का ${row.share}%, ` +
+      `${fmt(row.appointed)} नियुक्तियाँ। विधानसभा टीम कवरेज ${fmt(row.acAppointed)}/${fmt(row.acCount)} अर्थात ${row.coverage}%। ` +
+      `पड़ोसी विधानसभा क्रमांक ${neighbours}।`
+    );
+  }
+
+  function renderPcAppointments() {
+    if (!pcViewEl) return;
+    const row = pcAppointmentRow();
+    const visible = Boolean(row) && !['campaign', 'network', 'team'].includes(state.mode);
+    pcViewEl.style.display = visible ? 'block' : 'none';
+    pcViewEl.setAttribute('aria-hidden', String(!visible));
+    if (!visible) return;
+
+    pcAppTitle.textContent = `PC ${row.no} · ${row.name}`;
+    pcAppShare.textContent = `${row.share}%`;
+    pcAppCount.textContent = `${fmt(row.appointed)} नियुक्तियाँ · कुल ${fmt(cache.pcAppointments.total)} का हिस्सा`;
+    pcAppCoverage.textContent =
+      `टीम कवरेज: ${fmt(row.acAppointed)}/${fmt(row.acCount)} विधानसभा · ${row.coverage}%`;
+    pcAppNeighbours.textContent = row.neighbours.length
+      ? `पड़ोसी विधानसभा: ${row.neighbours.map((no) => `AC ${no}`).join(', ')}`
+      : 'पड़ोसी विधानसभा: —';
+    if (state.mode === 'pc' && descEl) descEl.textContent = pcDescription();
+  }
+
   function drawZones() {
     if (!cache.zones || !state.path) return;
     const opacity = zoneOpacityScale();
@@ -596,8 +655,10 @@ export function createMap({ boot }) {
     let items = [];
     if (mode === 'campaign') {
       title = 'नियुक्ति हिस्सेदारी · क्षेत्रवार';
-      const scale = zoneOpacityScale();
-      const bounds = [0, ...scale.quantiles(), scale.domain()[1]];
+      // zoneOpacityScale is a linear quantize scale, so its legend bands are
+      // equal slices of the domain. Calling quantiles() here would abort boot.
+      const max = d3.max(cache.zones?.features || [], (f) => f.properties.share) || 1;
+      const bounds = d3.range(ZONE_TINTS.length + 1).map((step) => (max * step) / ZONE_TINTS.length);
       items = ZONE_TINTS.map((color, i) => [
         color,
         `${Math.round(bounds[i])}–${Math.round(bounds[i + 1])}%`,
@@ -794,7 +855,10 @@ export function createMap({ boot }) {
     }
     state.mode = mode;
     svg.attr('data-m', mode);
-    if (descEl) descEl.textContent = mode === 'campaign' ? zoneDescription() : defaultDesc;
+    if (descEl) {
+      descEl.textContent =
+        mode === 'campaign' ? zoneDescription() : mode === 'pc' ? pcDescription() : defaultDesc;
+    }
     updateLayerButtons(mode);
     const networkView = document.getElementById('network-view');
     networkView.style.display = mode === 'network' ? 'block' : 'none';
@@ -843,6 +907,7 @@ export function createMap({ boot }) {
     renderLegend(mode);
     renderStat(mode);
     renderPanchayatReadout();
+    renderPcAppointments();
 
     if (mode === 'drill') {
       if (state.selected) {
@@ -944,6 +1009,8 @@ export function createMap({ boot }) {
       renderLegend(state.mode);
       renderStat(state.mode);
     }
+    renderPcAppointments();
+    if (state.pc) ensurePcAppointments().then(renderPcAppointments);
     onPcSelect(state.pc ? String(state.pc) : '');
 
     if (!fly) return;

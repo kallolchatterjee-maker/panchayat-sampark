@@ -9,6 +9,7 @@
     "dev": "node --watch server.mjs",
     "data": "node scripts/build-data.mjs",
     "zones": "node scripts/build-zones.mjs",
+    "pcs": "node scripts/build-pc-appointments.mjs",
     "build:static": "node scripts/build-static.mjs",
     "check": "node scripts/lib/check.mjs",
     "smoke": "node scripts/smoke.mjs",

@@ -2,7 +2,7 @@
 // drill-down panel, village search and the density scatter.
 const boot = JSON.parse(document.getElementById('boot').textContent);
 const [{ createMap }, { createVillageNetwork }] = await Promise.all([
-  import(`./map.js?v=${encodeURIComponent(boot.v)}&ui=26`),
+  import(`./map.js?v=${encodeURIComponent(boot.v)}&ui=29`),
   import(`./network.js?v=${encodeURIComponent(boot.v)}&ui=24`),
 ]);
 const nf = new Intl.NumberFormat('en-IN');

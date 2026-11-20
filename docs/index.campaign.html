@@ -20,7 +20,7 @@
     }
   })();
 </script>
-<link rel="stylesheet" href="./css/app.css?v=mwn3yze4&amp;ui=33">
+<link rel="stylesheet" href="./css/app.css?v=mwn3yze4&amp;ui=34">
 <script src="./js/zoom-check.js" defer></script>
 <script src="./js/theme.js" defer></script>
 </head>
@@ -49,6 +49,15 @@
   <div id="panchayat-view" aria-hidden="true">
     <div class="panchayat-overlay">
       <div id="panchayat-readout" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div id="pc-appointment-view" aria-hidden="true">
+    <div class="pc-appointment-card">
+      <p class="pc-app-k" id="pc-app-title">लोकसभा</p>
+      <p class="pc-app-main"><b id="pc-app-share"></b><span id="pc-app-count"></span></p>
+      <p class="pc-app-line" id="pc-app-coverage"></p>
+      <p class="pc-app-line pc-app-neighbours" id="pc-app-neighbours"></p>
     </div>
   </div>
 
@@ -2327,6 +2336,6 @@
 <script src="./vendor/d3.min.js"></script>
 <script src="./vendor/topojson-client.min.js"></script>
 <script src="./js/static-api.js"></script>
-<script type="module" src="./js/main.js?v=mwn3yze4&amp;ui=27"></script>
+<script type="module" src="./js/main.js?v=mwn3yze4&amp;ui=30"></script>
 </body>
 </html>
