@@ -285,6 +285,11 @@ try {
   const tileRule = cssText.match(/\.tile\s*\{([^}]*)\}/)?.[1] ?? '';
   check('stat tiles are chevron shaped', html.includes('class="tile"') &&
     tileRule.includes('clip-path: polygon(') && tileRule.includes('100% 50%'));
+  const tilesRule = cssText.match(/\.tiles\s*\{([^}]*)\}/)?.[1] ?? '';
+  check('all four stat tiles stay on one row',
+    tilesRule.includes('grid-template-columns: repeat(4, minmax(0, 1fr))') &&
+    /\.tile b\s*\{[^}]*white-space: nowrap/.test(cssText) &&
+    (cssText.match(/grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/g) || []).length >= 2);
   check('hero intro and zone label styles are defined',
     cssText.includes('.hero-intro') && cssText.includes('.zone-label-name') &&
     cssText.includes('--zone-halo') &&

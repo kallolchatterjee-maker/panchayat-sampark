@@ -945,8 +945,9 @@ td small {
 
 .tiles {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  /* All four headline numbers share one row; they shrink rather than wrap. */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
   margin: 16px 0 8px;
 }
 
@@ -966,12 +967,14 @@ td small {
 
 .tile b {
   display: block;
-  font: 700 30px/1 Poppins, sans-serif;
+  font: 700 clamp(18px, 2.2vw, 30px)/1 Poppins, sans-serif;
   color: var(--or-ink);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .tile span {
-  font-size: 13px;
+  font-size: clamp(10px, 1vw, 13px);
   color: var(--mute);
 }
 
@@ -2177,11 +2180,21 @@ input::placeholder,
   }
 
   .tiles {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
   }
 
   .tile {
-    --chevron-depth: 10px;
+    --chevron-depth: 8px;
+    padding: 6px calc(4px + var(--chevron-depth)) 6px 4px;
+  }
+
+  .tile b {
+    font-size: clamp(15px, 4.5vw, 22px);
+  }
+
+  .tile span {
+    font-size: 10px;
   }
 
   .chart {
