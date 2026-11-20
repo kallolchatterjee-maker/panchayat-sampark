@@ -786,17 +786,21 @@ export function createMap({ boot }) {
     statEl.style.display = mode === 'network' ? 'none' : '';
     document.querySelector('.mapfoot').style.display = mode === 'network' ? 'none' : '';
 
-    // The panchayat view lets the district choropleth fill the whole map; the
-    // hero view shows the six zones instead, so both boundary layers step aside.
+    // The hero view is the six-zone map from up_kshetra.geojson; every finer
+    // boundary (district, parliament, assembly) must step aside or its 403
+    // dark polygons cover the zone fills. The panchayat view does the same for
+    // the district choropleth.
+    const zoneView = mode === 'campaign';
     const districtPick = mode === 'panchayat';
-    layers.zones.style('display', mode === 'campaign' ? null : 'none');
-    layers.districts.style('display', mode === 'campaign' ? 'none' : null);
+    const outlineHidden = zoneView || districtPick;
+    layers.zones.style('display', zoneView ? null : 'none');
+    layers.districts.style('display', zoneView ? 'none' : null);
     layers.subdistricts.style('display', mode === 'sd' ? null : 'none');
     layers.grid.style('display', mode === 'villages' ? null : 'none');
     layers.villages.style('display', mode === 'drill' ? null : 'none');
-    layers.tiers.style('display', mode === 'panchayat' ? null : 'none');
-    layers.parliament.style('display', districtPick ? 'none' : null);
-    layers.assembly.style('display', districtPick ? 'none' : null);
+    layers.tiers.style('display', districtPick ? null : 'none');
+    layers.parliament.style('display', outlineHidden ? 'none' : null);
+    layers.assembly.style('display', outlineHidden ? 'none' : null);
     layers.hq.style('display', state.hq ? null : 'none');
     layers.districts
       .selectAll('path')

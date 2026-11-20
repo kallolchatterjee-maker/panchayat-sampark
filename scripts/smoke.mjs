@@ -331,6 +331,11 @@ try {
   check('zone geometry and labels are wired into svg#svg',
     html.includes('id="gz"') && mapSource.includes("select('#gz')") &&
     cssText.includes('.zone-label') && cssText.includes('.zone {'));
+  check('hero zone map hides every finer boundary layer',
+    mapSource.includes('const outlineHidden = zoneView || districtPick') &&
+    mapSource.includes("layers.assembly.style('display', outlineHidden ? 'none' : null)") &&
+    mapSource.includes("layers.parliament.style('display', outlineHidden ? 'none' : null)") &&
+    mapSource.includes("layers.districts.style('display', zoneView ? 'none' : null)"));
 
   check('light mode toggle is rendered',
     html.includes('id="theme-toggle"') && html.includes('class="theme-toggle-icon"') &&
