@@ -64,16 +64,33 @@
     return { ...own, children };
   }
 
-  function personHtml(row, depth) {
-    const title = [row.designation, row.verification, row.mobile && `मो: ${row.mobile}`]
+  function statusBadges(row) {
+    const verified = row.verification === 'Verified'
+      ? { label: 'सत्यापित', cls: 'verified' }
+      : row.verification === 'Not Verified'
+        ? { label: 'असत्यापित', cls: 'unverified' }
+        : { label: 'सत्यापन: —', cls: 'unknown' };
+    const saral = /^yes$/i.test(row.saral)
+      ? { label: 'SARAL: हाँ', cls: 'yes' }
+      : { label: 'SARAL: नहीं', cls: 'no' };
+    return `<div class="team-person-meta">
+      <span class="team-badge team-badge-${verified.cls}">${verified.label}</span>
+      <span class="team-badge team-badge-saral team-badge-${saral.cls}">${saral.label}</span>
+    </div>`;
+  }
+
+  function personHtml(row) {
+    const title = [row.designation, row.verification, `SARAL: ${/^yes$/i.test(row.saral) ? 'Yes' : 'No'}`, row.mobile && `मो: ${row.mobile}`]
       .filter(Boolean).join(' · ');
     const role = row.role
       ? `<span class="team-role${/सह/.test(row.role) ? ' team-role-sub' : ''}">${esc(row.role)}</span>`
       : '';
-    const designation = depth < 2 && row.designation
-      ? `<small>${esc(row.designation)}</small>`
-      : '';
-    return `<div class="team-person"${title ? ` title="${esc(title)}"` : ''}>${role}${esc(row.name)}${designation}</div>`;
+    const designation = row.designation ? `<small>${esc(row.designation)}</small>` : '';
+    return `<div class="team-person"${title ? ` title="${esc(title)}"` : ''}>
+      <div class="team-person-name">${role}${esc(row.name)}</div>
+      ${designation}
+      ${statusBadges(row)}
+    </div>`;
   }
 
   function nodeHtml(node, depth, stats) {
@@ -98,7 +115,7 @@
       <div class="team-node-card team-l${depth}"${buttonAttrs}>
         <div class="team-node-label">${esc(node.l)}</div>
         <div class="team-node-title">${esc(node.t)}</div>
-        ${node.p.map((person) => personHtml(person, depth)).join('')}
+        ${node.p.map(personHtml).join('')}
         <div class="team-node-foot">${chip}${toggle}</div>
       </div>
       ${childList}

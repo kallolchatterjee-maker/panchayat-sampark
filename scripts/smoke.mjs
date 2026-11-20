@@ -290,6 +290,10 @@ try {
   check('team tree is wired for search and expand/collapse',
     ['team-search', 'team-expand', 'team-collapse', 'team-tree'].every((id) => html.includes(`id="${id}"`)) &&
     ['team-node', 'team-hit', "fetch('/team-appointments.json')"].every((token) => teamScript.includes(token)));
+  check('each team member shows verification and SARAL status',
+    ['team-person-meta', 'सत्यापित', 'असत्यापित', 'सत्यापन: —', 'SARAL: हाँ', 'SARAL: नहीं'].every((token) => teamScript.includes(token)) &&
+    ['team-person-meta', 'team-badge-verified', 'team-badge-unverified', 'team-badge-saral-yes'].every((token) => cssText.includes(token)) &&
+    html.includes('team-appointments.js?v='));
 
   check('light mode toggle is rendered',
     html.includes('id="theme-toggle"') && html.includes('class="theme-toggle-icon"') &&
@@ -327,6 +331,9 @@ try {
     ['story muted on light card', '#5b544b', '#ffffff'],
     ['story accent on light card', '#a83a00', '#ffffff'],
     ['story note on light card', '#8a3c0d', '#ffffff'],
+    ['team verified badge', '#ffffff', '#146c43'],
+    ['team unverified badge', '#ffffff', '#8a3c0d'],
+    ['team saral badge', '#ffffff', '#1d4f91'],
     ['story muted on dark card', '#a9a29a', '#1a1a1a'],
     ['story accent on dark card', '#ff6200', '#1a1a1a'],
     ['ui text on dark chip', '#e8e2d8', '#121212'],
