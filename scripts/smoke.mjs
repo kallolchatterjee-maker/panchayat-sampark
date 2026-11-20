@@ -270,6 +270,9 @@ try {
 
   // ------------------------------------------------------------------ theming
   const cssText = readFileSync(new URL('../public/css/app.css', import.meta.url), 'utf8');
+  const tileRule = cssText.match(/\.tile\s*\{([^}]*)\}/)?.[1] ?? '';
+  check('stat tiles are chevron shaped', html.includes('class="tile"') &&
+    tileRule.includes('clip-path: polygon(') && tileRule.includes('100% 50%'));
 
   // Team appointment showcase (Data/Tracker.xlsx sheet 3, materialised as JSON).
   const teamData = JSON.parse(readFileSync(new URL('../public/team-appointments.json', import.meta.url), 'utf8'));

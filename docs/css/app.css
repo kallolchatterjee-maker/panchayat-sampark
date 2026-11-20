@@ -952,8 +952,12 @@ td small {
 }
 
 .tile {
+  /* Right-pointing chevron/tag. Keep the extra right padding so the numbers
+     never run into the sloping tip. */
+  --chevron-depth: 14px;
+  clip-path: polygon(0 0, calc(100% - var(--chevron-depth)) 0, 100% 50%, calc(100% - var(--chevron-depth)) 100%, 0 100%);
   border-left: 3px solid var(--or-ink);
-  padding: 6px 10px;
+  padding: 6px calc(10px + var(--chevron-depth)) 6px 10px;
   background: rgba(255, 98, 0, 0.08);
 }
 
@@ -2177,6 +2181,10 @@ input::placeholder,
 
   .tiles {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .tile {
+    --chevron-depth: 10px;
   }
 
   .chart {
