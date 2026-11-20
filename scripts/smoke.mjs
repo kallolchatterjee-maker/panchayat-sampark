@@ -127,7 +127,9 @@ try {
   const mainSource = readFileSync(new URL('../public/js/main.js', import.meta.url), 'utf8');
   const mapSource = readFileSync(new URL('../public/js/map.js', import.meta.url), 'utf8');
   const networkSource = readFileSync(new URL('../public/js/network.js', import.meta.url), 'utf8');
-  check('campaign progress drives the choropleth', mapSource.includes('campaignScale') && mapSource.includes('setProgress') && mainSource.includes('map.setProgress('));
+  const demoProgressTokens = ['id="hero-gauge"', 'id="map-bans"', 'id="ban-current"', '(डेमो)', 'अभियान प्रगति', 'गहराई = प्रगति', 'गहराई: अभियान प्रगति'];
+  check('demo progress gauges and numbers are hidden', demoProgressTokens.every((token) => !html.includes(token) && !mapSource.includes(token) && !mainSource.includes(token)));
+  check('campaign choropleth uses coverage without demo progress', mapSource.includes('campaignScale') && mapSource.includes('campaignOpacity') && !mapSource.includes('setProgress') && !mainSource.includes('map.setProgress('));
   check('village network dataviz is still wired', mainSource.includes('createVillageNetwork') && networkSource.includes('network-cells') && networkSource.includes('network-edges') && networkSource.includes('renderInfluenceDetail'));
   check('village network controls and influence panel are rendered', ['network-district', 'network-block', 'network-status', 'network-svg', 'influence-panel'].every((id) => html.includes(`id="${id}"`)));
   check('gram network uses force links and repulsion', ['forceLink', 'forceManyBody', 'buildCellLinks', 'buildMemberLinks', 'alphaDecay'].every((token) => networkSource.includes(token)));

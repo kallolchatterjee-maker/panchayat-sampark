@@ -140,7 +140,6 @@ body,
 #tip,
 .results,
 .legend,
-.map-bans,
 .influence-panel,
 .network-card,
 .network-legend {
@@ -658,87 +657,6 @@ textarea {
 .pc-filter-status {
   margin: 6px 0 0;
   color: var(--mute);
-}
-
-.map-bans {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 4;
-  width: min(390px, calc(100% - 32px));
-  pointer-events: none;
-  background: rgba(12, 12, 12, 0.76);
-  border: 1px solid rgba(255, 98, 0, 0.4);
-  padding: 12px 18px 14px;
-  color: #e8e2d8;
-  backdrop-filter: blur(6px);
-}
-.map-bans-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  border-top: 1px solid rgba(232, 226, 216, 0.18);
-  padding: 10px 8px 0;
-  text-align: center;
-}
-.map-ban span {
-  display: block;
-  font-size: 12px;
-  color: #a9a29a;
-  letter-spacing: 0.04em;
-}
-.map-ban b {
-  display: block;
-  font: 700 24px/1.1 Poppins, sans-serif;
-  color: var(--or);
-}
-.map-gauge {
-  position: relative;
-  width: 100%;
-  margin-bottom: 4px;
-}
-.map-gauge svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  overflow: visible;
-}
-.map-gauge-track,
-.map-gauge-fill {
-  fill: none;
-  stroke-width: 12;
-  stroke-linecap: round;
-}
-.map-gauge-track {
-  stroke: #34291f;
-}
-.map-gauge-fill {
-  stroke: var(--or);
-  stroke-dasharray: 100;
-  stroke-dashoffset: calc(100 - var(--progress, 0));
-  filter: drop-shadow(0 0 6px rgba(255, 98, 0, 0.5));
-  transition: stroke-dashoffset 0.6s ease;
-}
-.map-gauge-center {
-  position: absolute;
-  right: 0;
-  bottom: 12%;
-  left: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1.15;
-  text-align: center;
-}
-.map-gauge-center span {
-  color: #c7bcb1;
-  font-size: 14px;
-  letter-spacing: 0.08em;
-}
-.map-gauge-center b {
-  color: #fff;
-  font: 700 clamp(38px, 4vw, 52px)/1 Poppins, sans-serif;
 }
 
 .layers > button:hover,
@@ -1714,7 +1632,7 @@ input::placeholder,
 .ban-strip {
   display: grid;
   /* Two columns keep every headline number on one line in the story card.
-     Four columns are only used below when the card is genuinely wide. */
+     Three columns are only used below when the card is genuinely wide. */
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin: 14px 0 10px;
@@ -1725,9 +1643,7 @@ input::placeholder,
   border-left: 3px solid var(--story-accent);
   padding: 8px 10px;
 }
-.ban b,
-.gauge-head b,
-.map-ban b {
+.ban b {
   overflow-wrap: normal;
   word-break: keep-all;
   white-space: nowrap;
@@ -1746,58 +1662,14 @@ input::placeholder,
   color: var(--story-muted);
 }
 
-/* Only widen to four columns once the card can truly fit the numbers. */
+/* Only widen to three columns once the card can truly fit the numbers. */
 @media (min-width: 1600px) {
   .ban-strip {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .ban b {
     font-size: clamp(26px, 1.75vw, 32px);
   }
-}
-.progress-gauge {
-  margin: 10px 0 14px;
-  padding: 10px 12px;
-  border: 1px solid var(--story-panel-border);
-  background: var(--story-panel-bg);
-}
-.gauge-head {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 4px 10px;
-  align-items: baseline;
-  font-size: 13px;
-  color: var(--story-panel-text);
-}
-.gauge-head b {
-  color: var(--story-panel-strong);
-  font-weight: 700;
-}
-.gauge-track {
-  height: 12px;
-  background: var(--story-panel-track);
-  margin: 8px 0 6px;
-  border: 1px solid var(--story-panel-border);
-}
-.gauge-track i {
-  transition: width 0.6s ease;
-}
-.gauge-track i {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, #c24d0a, #ff6200, #ffb067);
-}
-.gauge-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  color: var(--story-panel-meta);
-  font-weight: 700;
-}
-.gauge-note {
-  margin-top: 4px;
-  font-size: 12px;
 }
 .org-tree { margin: 8px 0 14px; }
 .org-tree h3 { margin-bottom: 4px; }
@@ -1826,8 +1698,6 @@ input::placeholder,
 .gB { background: #c24d0a; }
 .gC { background: #ff6200; }
 .gD { background: #ffb067; }
-#map-bans { display: none; }
-body.show-map-bans #map-bans { display: block; }
 
 /* ------------------------------------------------------------- village graph */
 #svg[data-m='network'] {
@@ -2411,7 +2281,6 @@ body.show-map-bans #map-bans { display: block; }
 [data-theme='light'] .map-pc-filter select,
 [data-theme='light'] .legend,
 [data-theme='light'] .mapbtns button,
-[data-theme='light'] .map-bans,
 [data-theme='light'] #panchayat-view .panchayat-overlay,
 [data-theme='light'] .network-zoom-btns button,
 [data-theme='light'] .network-heading,
@@ -2443,15 +2312,12 @@ body.show-map-bans #map-bans { display: block; }
 
 [data-theme='light'] .legend .ttl,
 [data-theme='light'] #mapstat b,
-[data-theme='light'] .map-ban b,
 [data-theme='light'] .network-k,
 [data-theme='light'] #panchayat-readout .pr-value,
 [data-theme='light'] #network-reheat {
   color: var(--accent-ui);
 }
 
-[data-theme='light'] .map-ban span,
-[data-theme='light'] .map-gauge-center span,
 [data-theme='light'] #mapstat,
 [data-theme='light'] #panchayat-readout,
 [data-theme='light'] #panchayat-readout small,
@@ -2461,16 +2327,12 @@ body.show-map-bans #map-bans { display: block; }
 [data-theme='light'] .influence-legend {
   color: var(--ui-muted);
 }
-[data-theme='light'] .map-gauge-center b,
 [data-theme='light'] #panchayat-readout b,
 [data-theme='light'] .influence-panel h3,
 [data-theme='light'] .influence-close,
 [data-theme='light'] .network-heading h2 {
   color: var(--ui-text);
 }
-[data-theme='light'] .map-bans-row { border-top-color: var(--ui-border); }
-[data-theme='light'] .map-gauge-track { stroke: var(--track); }
-[data-theme='light'] .map-gauge-fill { filter: none; }
 [data-theme='light'] #mapstat { text-shadow: none; }
 [data-theme='light'] .influence-panel { border-top-color: var(--accent-ui); }
 

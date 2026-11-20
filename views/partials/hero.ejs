@@ -5,10 +5,6 @@
 
     <div class="ban-strip" id="hero-bans" role="group" aria-label="मुख्य अभियान संख्याएँ">
       <div class="ban">
-        <b id="ban-current"><%= num(vm.progress.current) %></b>
-        <span>वर्तमान पहुँच (डेमो)</span>
-      </div>
-      <div class="ban">
         <b><%= num(vm.meta.totals.villages) %></b>
         <span>गाँव</span>
       </div>
@@ -19,20 +15,6 @@
       <div class="ban">
         <b><%= num(vm.meta.totals.booths) %></b>
         <span>बूथ</span>
-      </div>
-    </div>
-
-    <div class="progress-gauge" id="hero-gauge" role="group" aria-label="लक्ष्य प्रगति">
-      <div class="gauge-head">
-        <span>लक्ष्य की ओर प्रगति</span>
-        <b><span id="gauge-current-text"><%= num(vm.progress.current) %></span> / <span id="gauge-target-text"><%= num(vm.progress.target) %></span></b>
-      </div>
-      <div class="gauge-track" aria-hidden="true">
-        <i id="gauge-fill" style="width:<%= Math.min(100, (vm.progress.current / vm.progress.target) * 100).toFixed(2) %>%"></i>
-      </div>
-      <div class="gauge-meta">
-        <span id="gauge-pct"><%= ((vm.progress.current / vm.progress.target) * 100).toFixed(1) %>% पूर्ण</span>
-        <span id="gauge-remaining"><%= num(Math.max(0, vm.progress.target - vm.progress.current)) %> शेष</span>
       </div>
     </div>
 

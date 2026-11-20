@@ -80,10 +80,6 @@ export function createMap({ boot }) {
     pc: null,
     selected: null,
     hq: false,
-    // 0–1, refreshed from /api/progress by main.js. Controls choropleth opacity.
-    progress: boot.progress
-      ? Math.max(0, Math.min(1, boot.progress.current / boot.progress.target))
-      : 0,
     ready: false,
     width: 0,
     height: 0,
@@ -114,13 +110,12 @@ export function createMap({ boot }) {
     (boot.districts || []).map((d) => d[1]),
     ORANGE,
   );
-  // Higher coverage = deeper orange. The statewide progress value controls
-  // opacity, so the map visibly "fills up" as the campaign approaches target.
+  // Higher coverage = deeper orange.
   const campaignScale = d3.scaleQuantile(
     (boot.districts || []).map((d) => d[7] ?? 0),
     ORANGE,
   );
-  const campaignOpacity = () => 0.3 + 0.7 * state.progress;
+  const campaignOpacity = () => 0.5;
   const pcScale = d3.scaleQuantile(
     (boot.pc || []).map((p) => p[2]),
     ORANGE,
@@ -154,7 +149,6 @@ export function createMap({ boot }) {
       return (
         `${name} · ${coverage}% बूथ-गाँव लिंक कवरेज\n` +
         `${fmt(agg?.[1] ?? 0)} बूथ · ${fmt(agg?.[2] ?? 0)} गाँव · ${fmt(agg?.[3] ?? 0)} विधानसभा\n` +
-        `रंग: कवरेज · गहराई: अभियान प्रगति ${(state.progress * 100).toFixed(1)}%\n` +
         `क्लिक: ज़िला चुनें`
       );
     }
@@ -532,7 +526,6 @@ export function createMap({ boot }) {
     if (mode === 'campaign') {
       title = 'अभियान सफलता · बूथ-गाँव लिंक कवरेज';
       items = quantileItems(campaignScale, (v) => `${(v * 100).toFixed(0)}%`);
-      items.push(['rgba(255, 98, 0, 0.35)', `गहराई = प्रगति ${(state.progress * 100).toFixed(0)}%`]);
     } else if (mode === 'dt') {
       title = 'बूथ प्रति ज़िला';
       items = quantileItems(districtScale, (v) => fmt(v));
@@ -603,8 +596,7 @@ export function createMap({ boot }) {
         ? rows.reduce((sum, row) => sum + (row[7] ?? 0), 0) / rows.length
         : 0;
       statEl.innerHTML =
-        `<b>${fmt(totals.districts)}</b> ज़िले · औसत लिंक कवरेज <b>${(avg * 100).toFixed(1)}%</b> · ` +
-        `अभियान प्रगति <b>${(state.progress * 100).toFixed(1)}%</b>`;
+        `<b>${fmt(totals.districts)}</b> ज़िले · औसत लिंक कवरेज <b>${(avg * 100).toFixed(1)}%</b>`;
     } else if (mode === 'dt') {
       statEl.innerHTML = `<b>${fmt(totals.districts)}</b> ज़िले · <b>${fmt(totals.booths)}</b> बूथ · ज़िले पर बूथ संख्या`;
     } else if (mode === 'panchayat') {
@@ -907,22 +899,6 @@ export function createMap({ boot }) {
     renderPanchayatReadout();
   }
 
-  // Called whenever /api/progress refreshes. It deepens the campaign
-  // choropleth without changing the underlying district coverage ranking.
-  function setProgress(value) {
-    const numeric = Number(value);
-    if (!Number.isFinite(numeric)) return;
-    state.progress = Math.max(0, Math.min(1, numeric));
-    if (state.mode !== 'campaign') return;
-    layers.districts
-      .selectAll('path')
-      .transition()
-      .duration(prefersReducedMotion() ? 0 : 300)
-      .style('fill-opacity', campaignOpacity());
-    renderLegend(state.mode);
-    renderStat(state.mode);
-  }
-
   async function focusAc(no) {
     const acNo = Number(no);
     if (!Number.isFinite(acNo) || !cache.features.assembly) return;
@@ -1027,7 +1003,6 @@ export function createMap({ boot }) {
     ready,
     setMode,
     setTier,
-    setProgress,
     selectDistrict,
     selectPc,
     focusAc,

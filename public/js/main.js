@@ -2,7 +2,7 @@
 // drill-down panel, village search and the density scatter.
 const boot = JSON.parse(document.getElementById('boot').textContent);
 const [{ createMap }, { createVillageNetwork }] = await Promise.all([
-  import(`./map.js?v=${encodeURIComponent(boot.v)}&ui=22`),
+  import(`./map.js?v=${encodeURIComponent(boot.v)}&ui=23`),
   import(`./network.js?v=${encodeURIComponent(boot.v)}&ui=24`),
 ]);
 const nf = new Intl.NumberFormat('en-IN');
@@ -252,9 +252,6 @@ function applyScrollState() {
   else villageNetwork?.hide();
   // The team section takes the full width and replaces the sticky map.
   document.body.classList.toggle('map-hidden', step.hasAttribute('data-map-hidden'));
-  // BANs over the map on the first section (hero)
-  const showBans = step.id === 'hero' || steps.indexOf(step) === 0;
-  document.body.classList.toggle('show-map-bans', showBans);
   const layerButton = document.querySelector(`.layers button[data-layer="${mode}"]`);
   if (layerButton) layerButton.setAttribute('aria-pressed', 'true');
 }
@@ -689,45 +686,6 @@ function renderScatter() {
 }
 
 // ----------------------------------------------------------------------- start
-function renderProgress(progress) {
-  if (!progress) return;
-  const target = Number(progress.target) || 2630940;
-  const current = Number(progress.current) || 0;
-  const pct = target ? Math.min(100, (current / target) * 100) : 0;
-  const remaining = Math.max(0, target - current);
-  const set = (id, text) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = text;
-  };
-  const setW = (id, width) => {
-    const el = document.getElementById(id);
-    if (el) el.style.width = `${width.toFixed(2)}%`;
-  };
-  set('ban-current', n(current));
-  set('gauge-current-text', n(current));
-  set('gauge-target-text', n(target));
-  set('gauge-pct', `${pct.toFixed(1)}% पूर्ण`);
-  set('gauge-remaining', `${n(remaining)} शेष`);
-  setW('gauge-fill', pct);
-  set('map-ban-current', n(current));
-  set('map-ban-target', n(target));
-  set('map-ban-pct', `${pct.toFixed(1)}%`);
-  const mapGaugeFill = document.getElementById('map-gauge-fill');
-  if (mapGaugeFill) mapGaugeFill.style.setProperty('--progress', pct.toFixed(2));
-  // Same success percentage drives the map's choropleth opacity.
-  map.setProgress(pct / 100);
-}
-
-async function refreshProgress() {
-  try {
-    const res = await fetch('/api/progress', { cache: 'no-store' });
-    if (!res.ok) return;
-    renderProgress(await res.json());
-  } catch (error) {
-    console.warn('progress refresh failed', error);
-  }
-}
-
 let lastScatterWidth = 0;
 let resizeTimer;
 window.addEventListener('resize', () => {
@@ -742,13 +700,10 @@ window.addEventListener('resize', () => {
 });
 
 map.ready.then(() => {
-  document.body.classList.add('show-map-bans');
   setActiveTier(map.tier);
   applyScrollState();
   renderScatter();
   lastScatterWidth = document.getElementById('scatter')?.clientWidth ?? 0;
-  renderProgress(boot.progress);
-  refreshProgress();
 });
 
 window.addEventListener('scroll', onScroll, { passive: true });

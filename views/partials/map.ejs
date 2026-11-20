@@ -1,7 +1,7 @@
 <div id="map" role="region" aria-label="उत्तर प्रदेश का इंटरैक्टिव नक्शा और परत नियंत्रण">
   <svg id="svg" data-m="dt" role="img" aria-labelledby="map-svg-title" aria-describedby="map-svg-desc">
     <title id="map-svg-title">उत्तर प्रदेश का विधानसभा और बूथ नक्शा</title>
-    <desc id="map-svg-desc">डिफ़ॉल्ट रूप से ज़िलों का रंग बूथ-गाँव लिंक कवरेज दिखाता है और गहराई अभियान प्रगति दिखाती है। परत बदलने के लिए नक्शे के ऊपर दिए बटन और विवरण के लिए ड्रिल-डाउन विधानसभा चयन का उपयोग करें।</desc>
+    <desc id="map-svg-desc">डिफ़ॉल्ट रूप से ज़िलों का रंग बूथ-गाँव लिंक कवरेज दिखाता है। परत बदलने के लिए नक्शे के ऊपर दिए बटन और विवरण के लिए ड्रिल-डाउन विधानसभा चयन का उपयोग करें।</desc>
     <g id="g">
       <g id="gd"></g>
       <g id="gp"></g>
@@ -14,23 +14,6 @@
     </g>
   </svg>
   <div id="tip" aria-hidden="true"></div>
-
-  <div id="map-bans" class="map-bans" role="group" aria-label="लक्ष्य और मुख्य संख्याएँ">
-    <div class="map-gauge">
-      <svg viewBox="0 0 320 180" aria-hidden="true">
-        <path class="map-gauge-track" d="M 20 160 A 140 140 0 0 1 300 160" pathLength="100"></path>
-        <path id="map-gauge-fill" class="map-gauge-fill" d="M 20 160 A 140 140 0 0 1 300 160" pathLength="100" style="--progress:<%= Math.min(100, (vm.progress.current / vm.progress.target) * 100).toFixed(2) %>"></path>
-      </svg>
-      <div class="map-gauge-center">
-        <span>प्रगति</span>
-        <b id="map-ban-pct"><%= ((vm.progress.current / vm.progress.target) * 100).toFixed(1) %>%</b>
-      </div>
-    </div>
-    <div class="map-bans-row">
-      <div class="map-ban"><span>वर्तमान पहुँच</span><b id="map-ban-current"><%= num(vm.progress.current) %></b></div>
-      <div class="map-ban"><span>लक्ष्य</span><b id="map-ban-target"><%= num(vm.progress.target) %></b></div>
-    </div>
-  </div>
 
   <div id="panchayat-view" aria-hidden="true">
     <div class="panchayat-overlay">
