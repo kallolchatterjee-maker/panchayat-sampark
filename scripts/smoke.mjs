@@ -361,6 +361,11 @@ try {
     /\.team-node-card\s*\{[^}]*flex-direction:\s*row/.test(cssText) &&
     /\.team-people\s*\{[^}]*flex-direction:\s*column/.test(cssText) &&
     teamScript.includes('<div class="team-people">'));
+  const cardWidth = Number(cssText.match(/\.team-node-card\s*\{[^}]*width:\s*(\d+)px/)?.[1] ?? 0);
+  const rootCardWidth = Number(cssText.match(/\.team-l0\s*\{\s*width:\s*(\d+)px/)?.[1] ?? 0);
+  check('team tree starts at six zones with compact cards',
+    teamScript.includes("const open = depth === 0 ? ' open' : '';") &&
+    cardWidth > 0 && cardWidth <= 400 && rootCardWidth > 0 && rootCardWidth <= 400);
   check('each team member shows verification and duty information',
     ['team-person-meta', 'सत्यापित', 'असत्यापित', 'सत्यापन: —', 'दायित्व: हाँ', 'दायित्व: नहीं', 'दायित्व: जानकारी नहीं दी', 'दायित्व: —'].every((token) => teamScript.includes(token)) &&
     !teamScript.includes('SARAL') &&

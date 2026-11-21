@@ -108,7 +108,8 @@
       ? `<span class="team-toggle" aria-hidden="true">${kids.length} ${LABELS[node.l] || ''}</span>`
       : '';
     const search = [node.t, ...node.p.map((person) => person.name)].join(' ').toLowerCase();
-    const open = depth <= 1 ? ' open' : '';
+    // Start at Pradesh → six zones; deeper levels open on demand.
+    const open = depth === 0 ? ' open' : '';
     const buttonAttrs = kids.length ? ' role="button" tabindex="0"' : '';
     const childList = kids.length
       ? `<ul class="team-children${node.l === 'ज़िला' ? ' team-children-vert' : ''}">${kids
