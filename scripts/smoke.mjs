@@ -404,6 +404,15 @@ try {
       html.includes(`${entry.tier} · ${entry.designation}`) &&
       [entry.taggedPhone, entry.contested, entry.uncontested, entry.singleBooth]
         .every((value) => html.includes(num(value)))));
+  const wardRows = summaryData.districtWards || [];
+  check('district ward bars come from the Prateek sheet',
+    html.includes('id="ward-bars"') && html.includes('ज़िलेवार वार्ड') &&
+    html.indexOf('BJP टैगिंग और परिणाम') < html.indexOf('id="ward-bars"') &&
+    wardRows.length === 75 &&
+    wardRows.every((entry, index) =>
+      (index === 0 || wardRows[index - 1].wards >= entry.wards) &&
+      html.includes(`>${entry.district}<`) && html.includes(num(entry.wards))),
+    `${wardRows.length} districts`);
 
   // Six-zone hero map (Data/up_kshetra.geojson → committed public asset).
   const zoneData = JSON.parse(readFileSync(new URL('../public/up-kshetra.json', import.meta.url), 'utf8'));

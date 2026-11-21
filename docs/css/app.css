@@ -2582,6 +2582,52 @@ input::placeholder,
   border-bottom: 0;
 }
 
+.ward-bars {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  column-gap: 26px;
+  margin: 14px 0 18px;
+}
+
+.ward-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--line-ui);
+}
+
+.ward-name {
+  flex: 0 0 132px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.ward-track {
+  flex: 1 1 auto;
+  min-width: 40px;
+  height: 12px;
+  background: var(--track);
+}
+
+.ward-track i {
+  display: block;
+  height: 100%;
+  background: var(--story-accent);
+}
+
+.ward-row b {
+  flex: 0 0 62px;
+  text-align: right;
+  font: 700 13px/1 Poppins, sans-serif;
+  color: var(--or-ink);
+}
+
 /* ------------------------------------------------------- team appointments */
 /* The team section replaces the sticky map for its whole scroll range. */
 body.map-hidden #map {

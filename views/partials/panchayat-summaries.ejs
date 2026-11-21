@@ -91,5 +91,16 @@
         </tbody>
       </table>
     </div>
+
+    <h3 class="summary-title">ज़िलेवार वार्ड</h3>
+    <div class="ward-bars" id="ward-bars" role="list" aria-label="ज़िलेवार वार्ड संख्या">
+      <% vm.districtWards.forEach((entry) => { %>
+      <div class="ward-row" role="listitem">
+        <span class="ward-name"><%= entry.district %></span>
+        <span class="ward-track" aria-hidden="true"><i style="width: <%= entry.width.toFixed(1) %>%"></i></span>
+        <b><%= num(entry.wards) %></b>
+      </div>
+      <% }) %>
+    </div>
   </div>
 </section>

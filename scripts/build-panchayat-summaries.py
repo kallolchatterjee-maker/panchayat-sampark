@@ -120,6 +120,7 @@ def load_sheets():
                 "Data Matching Summary",
                 "Zila_wise_Panchayat_Summary",
                 "Panchayat - Data Summary",
+                "Prateek",
             }:
                 continue
             target = targets[sheet.attrib[REL_NS]].lstrip("/")
@@ -221,16 +222,31 @@ def build_bjp(rows):
     return entries
 
 
+def build_district_wards(rows):
+    entries = []
+    for cells in rows.values():
+        district = cells.get("A", "")
+        if not district or district.lower() == "zila_eng":
+            continue
+        wards = number(cells.get("B"))
+        if wards:
+            entries.append({"district": district, "wards": wards})
+    entries.sort(key=lambda item: (-item["wards"], item["district"]))
+    return entries
+
+
 def build():
     sheets = load_sheets()
     matching, matching_totals = build_matching(sheets["Data Matching Summary"])
     three_tier = build_three_tier(sheets["Zila_wise_Panchayat_Summary"])
     bjp = build_bjp(sheets["Panchayat - Data Summary"])
+    district_wards = build_district_wards(sheets["Prateek"])
     payload = {
         "threeTier": three_tier,
         "dataMatching": matching,
         "dataMatchingTotals": matching_totals,
         "bjp": bjp,
+        "districtWards": district_wards,
     }
     TARGET.parent.mkdir(parents=True, exist_ok=True)
     TARGET.write_text(
@@ -238,7 +254,7 @@ def build():
     )
     print(
         f"{TARGET.relative_to(ROOT)}: {len(matching)} local bodies, "
-        f"{len(bjp)} designated posts, three-tier heads " +
+        f"{len(bjp)} designated posts, {len(district_wards)} districts, three-tier heads " +
         ", ".join(str(value["head"]) for value in three_tier.values())
     )
 
