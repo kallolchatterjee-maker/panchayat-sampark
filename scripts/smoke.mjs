@@ -357,6 +357,10 @@ try {
   check('team tree is wired for search and expand/collapse',
     ['team-search', 'team-expand', 'team-collapse', 'team-tree'].every((id) => html.includes(`id="${id}"`)) &&
     ['team-node', 'team-hit', "fetch('/team-appointments.json')"].every((token) => teamScript.includes(token)));
+  check('team cards use a horizontal row layout',
+    /\.team-node-card\s*\{[^}]*flex-direction:\s*row/.test(cssText) &&
+    /\.team-people\s*\{[^}]*flex-direction:\s*column/.test(cssText) &&
+    teamScript.includes('<div class="team-people">'));
   check('each team member shows verification and duty information',
     ['team-person-meta', 'सत्यापित', 'असत्यापित', 'सत्यापन: —', 'दायित्व: हाँ', 'दायित्व: नहीं', 'दायित्व: जानकारी नहीं दी', 'दायित्व: —'].every((token) => teamScript.includes(token)) &&
     !teamScript.includes('SARAL') &&

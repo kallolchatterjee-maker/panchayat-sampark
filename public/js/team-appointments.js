@@ -119,7 +119,7 @@
       <div class="team-node-card team-l${depth}"${buttonAttrs}>
         <div class="team-node-label">${esc(node.l)}</div>
         <div class="team-node-title">${esc(node.t)}</div>
-        ${node.p.map(personHtml).join('')}
+        <div class="team-people">${node.p.map(personHtml).join('')}</div>
         <div class="team-node-foot">${chip}${toggle}</div>
       </div>
       ${childList}

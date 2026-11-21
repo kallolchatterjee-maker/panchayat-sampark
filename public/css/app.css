@@ -2833,18 +2833,32 @@ body.map-hidden .steps {
 }
 
 .team-node-card {
-  width: 210px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  width: 680px;
+  min-height: 92px;
   background: var(--cream);
   color: var(--ink);
-  padding: 10px 12px 9px;
+  padding: 10px 14px 9px;
   text-align: left;
   border-top: 5px solid var(--or-ink);
 }
 
-.team-l0 { width: 260px; }
+.team-l0 { width: 680px; }
 .team-l1 { border-top-color: #8a3c0d; }
 .team-l2 { border-top-color: var(--green); }
-.team-l3 { width: 200px; padding: 7px 10px; border-top-color: var(--mute); }
+.team-l3 { width: 720px; padding: 8px 14px; border-top-color: var(--mute); }
+
+.team-people {
+  display: flex;
+  flex: 1 1 280px;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
 
 .team-node-card[role='button'] {
   cursor: pointer;
@@ -2860,6 +2874,7 @@ body.map-hidden .steps {
 }
 
 .team-node-label {
+  flex: 0 0 66px;
   font-size: 11px;
   font-weight: 800;
   color: var(--or-ink);
@@ -2871,17 +2886,18 @@ body.map-hidden .steps {
 }
 
 .team-node-title {
-  font: 700 24px/1.05 Poppins, sans-serif;
-  margin: 1px 0 3px;
+  flex: 0 1 170px;
+  font: 700 22px/1.05 Poppins, sans-serif;
+  margin: 0;
 }
 
-.team-l0 .team-node-title { font-size: 32px; }
-.team-l3 .team-node-title { font-size: 19px; margin-bottom: 4px; }
+.team-l0 .team-node-title { font-size: 28px; }
+.team-l3 .team-node-title { font-size: 18px; }
 
 .team-person {
-  font-size: 14px;
-  padding: 4px 0 5px;
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  font-size: 13px;
+  padding: 2px 0 2px 10px;
+  border-left: 1px solid rgba(0, 0, 0, 0.12);
   font-weight: 600;
 }
 
@@ -2938,10 +2954,11 @@ body.map-hidden .steps {
 
 .team-node-foot {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  align-items: center;
-  margin-top: 6px;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-end;
+  margin-top: 0;
 }
 
 .team-chip {
@@ -2965,10 +2982,11 @@ body.map-hidden .steps {
 }
 
 .team-toggle {
-  margin-left: auto;
+  margin-left: 0;
   font-size: 12px;
   font-weight: 800;
   color: var(--or-ink);
+  white-space: nowrap;
 }
 
 .team-node.open > .team-node-card .team-toggle::before {
