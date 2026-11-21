@@ -121,10 +121,12 @@ def build():
             "role": cells.get("F", ""),
             "name": name,
             "status": cells.get("H", ""),
-            "verification": cells.get("I", ""),
-            "designation": cells.get("J", ""),
-            "mobile": normalise_mobile(cells.get("K", "")),
-            "saral": cells.get("L", ""),
+            "callingStatus": as_text(cells.get("I", "")),
+            "verification": cells.get("J", ""),
+            "dutyInfo": as_text(cells.get("K", "")),
+            "designation": cells.get("L", ""),
+            "mobile": normalise_mobile(cells.get("M", "")),
+            "saral": cells.get("N", ""),
         })
 
     assembly_rows = [row for row in rows if row["level"] == "Vidhan Sabha"]

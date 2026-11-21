@@ -349,10 +349,17 @@ try {
   check('team tree is wired for search and expand/collapse',
     ['team-search', 'team-expand', 'team-collapse', 'team-tree'].every((id) => html.includes(`id="${id}"`)) &&
     ['team-node', 'team-hit', "fetch('/team-appointments.json')"].every((token) => teamScript.includes(token)));
-  check('each team member shows verification and SARAL status',
-    ['team-person-meta', 'सत्यापित', 'असत्यापित', 'सत्यापन: —', 'SARAL: हाँ', 'SARAL: नहीं'].every((token) => teamScript.includes(token)) &&
-    ['team-person-meta', 'team-badge-verified', 'team-badge-unverified', 'team-badge-saral-yes'].every((token) => cssText.includes(token)) &&
+  check('each team member shows verification and duty information',
+    ['team-person-meta', 'सत्यापित', 'असत्यापित', 'सत्यापन: —', 'दायित्व: हाँ', 'दायित्व: नहीं', 'दायित्व: जानकारी नहीं दी', 'दायित्व: —'].every((token) => teamScript.includes(token)) &&
+    !teamScript.includes('SARAL') &&
+    ['team-person-meta', 'team-badge-verified', 'team-badge-unverified', 'team-badge-duty-yes', 'team-badge-duty-no'].every((token) => cssText.includes(token)) &&
     html.includes('team-appointments.js?v='));
+  check('team JSON maps the shifted workbook columns correctly',
+    teamData.totals.verified === teamData.rows.filter((row) => row.verification === 'Verified').length &&
+    teamData.totals.notVerified === teamData.rows.filter((row) => row.verification === 'Not Verified').length &&
+    ['हाँ', 'नहीं', 'जानकारी नहीं दी', ''].every((value) => teamData.rows.some((row) => row.dutyInfo === value)) &&
+    !teamData.rows.some((row) => /^(Verified|Not Verified)$/.test(row.designation)) &&
+    !teamData.rows.some((row) => /^(हाँ|नहीं|जानकारी नहीं दी)$/.test(row.mobile)));
 
   // Six-zone hero map (Data/up_kshetra.geojson → committed public asset).
   const zoneData = JSON.parse(readFileSync(new URL('../public/up-kshetra.json', import.meta.url), 'utf8'));
@@ -436,7 +443,8 @@ try {
     ['story note on light card', '#8a3c0d', '#ffffff'],
     ['team verified badge', '#ffffff', '#146c43'],
     ['team unverified badge', '#ffffff', '#8a3c0d'],
-    ['team saral badge', '#ffffff', '#1d4f91'],
+    ['team duty badge', '#ffffff', '#1d4f91'],
+    ['team duty negative badge', '#ffffff', '#8a3c0d'],
     ['story muted on dark card', '#a9a29a', '#1a1a1a'],
     ['story accent on dark card', '#ff6200', '#1a1a1a'],
     ['ui text on dark chip', '#e8e2d8', '#121212'],

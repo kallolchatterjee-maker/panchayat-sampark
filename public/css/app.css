@@ -2783,8 +2783,8 @@ body.map-hidden .steps {
 .team-badge-verified { background: #146c43; color: #fff; }
 .team-badge-unverified { background: #8a3c0d; color: #fff; }
 .team-badge-unknown { background: transparent; border-color: var(--line-ui); color: var(--mute); }
-.team-badge-saral-yes { background: #1d4f91; color: #fff; }
-.team-badge-saral-no { background: transparent; border-color: var(--line-ui); color: var(--mute); }
+.team-badge-duty-yes { background: #1d4f91; color: #fff; }
+.team-badge-duty-no { background: #8a3c0d; color: #fff; }
 
 .team-role {
   display: inline-block;

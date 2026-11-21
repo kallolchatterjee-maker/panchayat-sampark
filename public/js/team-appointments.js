@@ -70,17 +70,21 @@
       : row.verification === 'Not Verified'
         ? { label: 'असत्यापित', cls: 'unverified' }
         : { label: 'सत्यापन: —', cls: 'unknown' };
-    const saral = /^yes$/i.test(row.saral)
-      ? { label: 'SARAL: हाँ', cls: 'yes' }
-      : { label: 'SARAL: नहीं', cls: 'no' };
+    const duty = row.dutyInfo === 'हाँ'
+      ? { label: 'दायित्व: हाँ', cls: 'duty-yes' }
+      : row.dutyInfo === 'नहीं'
+        ? { label: 'दायित्व: नहीं', cls: 'duty-no' }
+        : row.dutyInfo === 'जानकारी नहीं दी'
+          ? { label: 'दायित्व: जानकारी नहीं दी', cls: 'unknown' }
+          : { label: 'दायित्व: —', cls: 'unknown' };
     return `<div class="team-person-meta">
       <span class="team-badge team-badge-${verified.cls}">${verified.label}</span>
-      <span class="team-badge team-badge-saral team-badge-${saral.cls}">${saral.label}</span>
+      <span class="team-badge team-badge-${duty.cls}">${duty.label}</span>
     </div>`;
   }
 
   function personHtml(row) {
-    const title = [row.designation, row.verification, `SARAL: ${/^yes$/i.test(row.saral) ? 'Yes' : 'No'}`, row.mobile && `मो: ${row.mobile}`]
+    const title = [row.designation, row.verification, `दायित्व: ${row.dutyInfo || '—'}`, row.mobile && `मो: ${row.mobile}`]
       .filter(Boolean).join(' · ');
     const role = row.role
       ? `<span class="team-role${/सह/.test(row.role) ? ' team-role-sub' : ''}">${esc(row.role)}</span>`
