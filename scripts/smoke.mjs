@@ -356,21 +356,15 @@ try {
     teamData.rows.every((row) => !/[Ee]/.test(row.mobile)));
   check('team tree is wired for search and expand/collapse',
     ['team-search', 'team-expand', 'team-collapse', 'team-tree'].every((id) => html.includes(`id="${id}"`)) &&
-    ['node.hit', 'function setOpen', 'function layoutTree', "fetch('/team-appointments.json')"]
-      .every((token) => teamScript.includes(token)));
-  check('team structure is a pannable, zoomable canvas',
-    html.includes('id="team-canvas"') &&
-    ['team-zoom-in', 'team-zoom-out', 'team-fit'].every((id) => html.includes(`id="${id}"`)) &&
-    !html.includes('team-scroll') &&
-    cssText.includes('.team-canvas-stage') && cssText.includes('#team-canvas') &&
-    cssText.includes('touch-action: none') &&
-    ["getContext('2d')", "addEventListener('wheel'", "addEventListener('pointerdown'", 'function fit(']
-      .every((token) => teamScript.includes(token)));
+    ['team-node', 'team-hit', "fetch('/team-appointments.json')"].every((token) => teamScript.includes(token)));
+  check('team cards use a horizontal row layout',
+    /\.team-node-card\s*\{[^}]*flex-direction:\s*row/.test(cssText) &&
+    /\.team-people\s*\{[^}]*flex-direction:\s*column/.test(cssText) &&
+    teamScript.includes('<div class="team-people">'));
   check('each team member shows verification and duty information',
-    ['function verification', 'function duty', 'function personLine', 'सत्यापित', 'असत्यापित',
-      'सत्यापन: —', 'दायित्व: हाँ', 'दायित्व: नहीं', 'दायित्व: जानकारी नहीं दी', 'दायित्व: —']
-      .every((token) => teamScript.includes(token)) &&
+    ['team-person-meta', 'सत्यापित', 'असत्यापित', 'सत्यापन: —', 'दायित्व: हाँ', 'दायित्व: नहीं', 'दायित्व: जानकारी नहीं दी', 'दायित्व: —'].every((token) => teamScript.includes(token)) &&
     !teamScript.includes('SARAL') &&
+    ['team-person-meta', 'team-badge-verified', 'team-badge-unverified', 'team-badge-duty-yes', 'team-badge-duty-no'].every((token) => cssText.includes(token)) &&
     html.includes('team-appointments.js?v='));
   check('team JSON maps the shifted workbook columns correctly',
     teamData.totals.verified === teamData.rows.filter((row) => row.verification === 'Verified').length &&

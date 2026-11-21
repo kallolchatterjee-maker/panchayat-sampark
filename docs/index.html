@@ -20,7 +20,7 @@
     }
   })();
 </script>
-<link rel="stylesheet" href="./css/app.css?v=mwn9hr2h&amp;ui=39">
+<link rel="stylesheet" href="./css/app.css?v=mwn9hr2h&amp;ui=38">
 <script src="./js/zoom-check.js" defer></script>
 <script src="./js/theme.js?v=mwn9hr2h&amp;ui=2" defer></script>
 </head>
@@ -662,19 +662,16 @@
       <input type="search" id="team-search" placeholder="नाम, ज़िला या विधानसभा खोजें" autocomplete="off">
       <button type="button" id="team-expand">सब खोलें</button>
       <button type="button" id="team-collapse">सब बंद करें</button>
-      <button type="button" id="team-zoom-out" aria-label="टीम संरचना ज़ूम घटाएँ">−</button>
-      <button type="button" id="team-zoom-in" aria-label="टीम संरचना ज़ूम बढ़ाएँ">+</button>
-      <button type="button" id="team-fit">एक दृश्य में</button>
       <button type="button" data-theme-toggle class="theme-toggle" aria-label="लाइट मोड चालू करें">
         <span class="theme-toggle-icon" aria-hidden="true">☀</span>
         <span class="theme-toggle-text">लाइट मोड</span>
       </button>
     </div>
 
-    <div class="team-canvas-stage">
-      <canvas id="team-canvas" tabindex="0" role="img"
-        aria-label="प्रदेश से विधानसभा तक टीम संरचना। खींचकर हिलाएँ, स्क्रॉल या बटन से ज़ूम करें, शून्य से एक दृश्य में फिट करें।"></canvas>
-      <ul class="sr" id="team-tree" aria-label="प्रदेश से विधानसभा तक टीम संरचना"></ul>
+    <div class="team-scroll">
+      <div class="team-wrap">
+        <ul class="team-tree" id="team-tree" aria-label="प्रदेश से विधानसभा तक टीम संरचना"></ul>
+      </div>
     </div>
   </div>
 </section>
@@ -2823,6 +2820,6 @@
 <script src="./vendor/topojson-client.min.js"></script>
 <script src="./js/static-api.js"></script>
 <script type="module" src="./js/main.js?v=mwn9hr2h&amp;ui=30"></script>
-<script src="./js/team-appointments.js?v=mwn9hr2h&amp;ui=5"></script>
+<script src="./js/team-appointments.js?v=mwn9hr2h&amp;ui=4"></script>
 </body>
 </html>
