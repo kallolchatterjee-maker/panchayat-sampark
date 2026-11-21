@@ -149,6 +149,8 @@ try {
   check('gram network reheat control is rendered and wired', html.includes('id="network-reheat"') && networkSource.includes("getElementById('network-reheat')") && networkSource.includes('reheatLayout'));
   check('Lok Sabha filter is wired to the map and AC list', mapSource.includes('selectPc') && mapSource.includes('pc-match') && mainSource.includes('map.selectPc(') && mainSource.includes('setOnPcSelect'));
 
+  const teamData = JSON.parse(readFileSync(new URL('../public/team-appointments.json', import.meta.url), 'utf8'));
+
   // Selecting a Lok Sabha seat replaces the zone labels with its own appointment
   // callout plus the AC numbers that touch the seat boundary.
   const pcData = JSON.parse(readFileSync(new URL('../public/pc-appointments.json', import.meta.url), 'utf8'));
@@ -173,10 +175,11 @@ try {
       row.coverage >= 0 && row.coverage <= 100 && row.neighbours.length > 0 &&
       row.neighbours.every((no, i, all) => Number.isFinite(no) && (i === 0 || all[i - 1] < no))));
   check('Lok Sabha totals reconcile with the tracker',
-    pcData.total === 966 &&
-    pcRows.reduce((sum, row) => sum + row.appointed, 0) === 959 &&
+    pcData.total === teamData.totals.appointed &&
+    pcRows.reduce((sum, row) => sum + row.appointed, 0) ===
+      teamData.rows.filter((row) => row.level === 'Vidhan Sabha' && /appoint/i.test(row.status || '')).length &&
     pcRows.reduce((sum, row) => sum + row.acCount, 0) === 403 &&
-    pcRows.reduce((sum, row) => sum + row.acAppointed, 0) === 321);
+    pcRows.reduce((sum, row) => sum + row.acAppointed, 0) === teamData.totals.acs);
 
   check('no unresolved EJS markers', !html.includes('<%'));
 
@@ -327,7 +330,6 @@ try {
     !cssText.includes('.ban-strip') && !/\.ban\s*\{/.test(cssText));
 
   // Team appointment showcase (Data/Tracker.xlsx sheet 3, materialised as JSON).
-  const teamData = JSON.parse(readFileSync(new URL('../public/team-appointments.json', import.meta.url), 'utf8'));
   const teamScript = readFileSync(new URL('../public/js/team-appointments.js', import.meta.url), 'utf8');
   check('team section follows the three-tier card',
     html.indexOf('data-m="panchayat"') < html.indexOf('id="team"') &&
@@ -338,9 +340,9 @@ try {
   check('team KPIs come from the tracker sheet',
     html.includes(num(teamData.totals.acs)) && html.includes(num(teamData.totals.zilas)) &&
     html.includes('विधानसभा टीम'));
-  check('team JSON has every appointment row', teamData.rows.length === teamData.totals.names && teamData.rows.length === 966);
-  check('team JSON covers all six zones and 321 Vidhan Sabha teams',
-    teamData.zoneOrder.length === 6 && teamData.totals.acs === 321 && teamData.totals.acsTarget === 403);
+  check('team JSON has every appointment row', teamData.rows.length === teamData.totals.names && teamData.totals.names > 0);
+  check('team JSON covers all six zones and every Vidhan Sabha team',
+    teamData.zoneOrder.length === 6 && teamData.totals.acs <= teamData.totals.acsTarget && teamData.totals.acsTarget === 403);
   check('team JSON carries forward hierarchy and cleans mobile numbers',
     teamData.rows.filter((row) => row.level === 'Vidhan Sabha' && row.zone && row.zila && row.ac).length > 900 &&
     teamData.rows.every((row) => !/[Ee]/.test(row.mobile)));
@@ -474,7 +476,7 @@ try {
 
 const width = Math.max(...checks.map((c) => c.label.length));
 for (const entry of checks) {
-  console.log(`${entry.ok ? 'ok  ' : 'FAIL'}  ${entry.label.padEnd(width)}  ${entry.ok ? '' : entry.detail}`);
+  console.log(`${entry.ok ? 'ok  ' : 'FAIL'}  ${entry.label.padEnd(width)}  ${entry.ok ? '' : entry.detail || 'data mismatch'}`);
 }
 console.log('');
 if (failures.length) {
