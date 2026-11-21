@@ -2494,6 +2494,94 @@ input::placeholder,
 [data-theme='light'] .network-legend-line { border-top-color: #8a3d10; }
 [data-theme='light'] .network-legend-influence { border-color: #6f6559; background: #6f6559; }
 
+/* ------------------------------------------------------ panchayat summaries */
+/* Full-width workbook tables sit beside the team showcase, replacing the map. */
+.step-summaries {
+  display: block;
+  min-height: auto;
+  padding: 0;
+}
+
+.step-summaries .summaries-card {
+  padding: 26px 3vw 48px;
+  border-left: 0;
+  border-right: 0;
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+}
+
+.summary-title {
+  margin: 24px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--line-ui);
+  color: var(--or-ink);
+  font: 700 19px/1.2 Poppins, sans-serif;
+}
+
+.summary-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0 14px;
+}
+
+.summary-kpi {
+  min-width: 150px;
+  flex: 1 1 150px;
+  padding: 10px 14px;
+  background: var(--cream);
+  color: var(--ink);
+  border-top: 4px solid var(--or-ink);
+}
+
+.summary-kpi b {
+  display: block;
+  font: 700 30px/1 Poppins, sans-serif;
+  color: var(--or-ink);
+}
+
+.summary-kpi span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.summary-scroll {
+  overflow-x: auto;
+  padding: 8px 0 18px;
+}
+
+.summary-table {
+  min-width: 940px;
+  font-size: 14px;
+}
+
+.summary-table th,
+.summary-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line-ui);
+  color: var(--ink);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.summary-table thead th {
+  color: var(--or-ink);
+  border-bottom: 2px solid var(--or-ink);
+  font-size: 12px;
+  vertical-align: bottom;
+}
+
+.summary-table tbody th {
+  text-align: left;
+  font-weight: 700;
+}
+
+.summary-table tbody tr:last-child th,
+.summary-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
 /* ------------------------------------------------------- team appointments */
 /* The team section replaces the sticky map for its whole scroll range. */
 body.map-hidden #map {

@@ -87,7 +87,7 @@ on member click. Its controls live in `views/partials/network.ejs`; the SVG and
 influence panel live in `views/partials/map.ejs`.
 
 The three-tier panchayat card replaces the static post table with a log-scaled
-bar chart of all six elected posts plus a share bar for the 8,76,980 total. The
+bar chart of all six elected posts plus a share bar for the 8,67,616 total. The
 same `vm.tiers` definition drives a map overlay: picking a tier recolors the
 75 district polygons by that tier's district-level metric (villages → blocks →
 GPs) and resizes one bubble per district. The chart appears both in the card
@@ -124,9 +124,10 @@ read at build/store load time — the browser receives a compact 80-row list.
   is by AC number, not by boundary.
 - **3 villages** with failed geometry and **5,439 blank village names** are
   counted but not drawn/labelled.
-- **Campaign-deck numbers** (8,76,980 elected representatives, 2,121 ground
-  team, the November–January timeline) are static narrative cards. The progress
-  gauge is demo-only. The campaign choropleth uses real district link-coverage
+- **Tracker and campaign-deck numbers** (8,67,616 elected representatives from
+  `Data/Tracker.xlsx`, 2,121 ground team, the November–January timeline) appear
+  on the cards; only the ground-team and timeline figures are static narrative.
+  The progress gauge is demo-only. The campaign choropleth uses real district link-coverage
   for colour and the demo progress only for fill intensity; it does not claim
   district-level demo reach. Every other number on the page is computed from
   `Data/`.
@@ -135,9 +136,10 @@ read at build/store load time — the browser receives a compact 80-row list.
   names) and must not be interpreted as totals for Uttar Pradesh.
 - The three-tier map uses `build/districts.json`. Block counts are missing for
   Mahrajganj, Sant Kabir Nagar and Shrawasti; those districts are left dark in
-  the क्षेत्र पंचायत view and labelled "ब्लॉक-गणना नहीं" in tooltips. The 75 / 826 /
-  57,694 unit counts in the chart are campaign-deck figures; the map's statewide
-  GP and block sums are the dataset counts and are labelled as such.
+  the क्षेत्र पंचायत view and labelled "ब्लॉक-गणना नहीं" in tooltips. The 75 / 825 /
+  58,167 unit counts in the chart come from the tracker's Zila-wise Panchayat
+  Summary; the map's statewide GP and block sums are the dataset counts and are
+  labelled as such.
 
 ## Booth Saturation Index
 

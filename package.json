@@ -10,6 +10,8 @@
     "data": "node scripts/build-data.mjs",
     "zones": "node scripts/build-zones.mjs",
     "pcs": "node scripts/build-pc-appointments.mjs",
+    "panchayat": "python scripts/build-panchayat-summaries.py",
+    "tracker": "python scripts/build-team-data.py && npm run zones && npm run pcs && npm run panchayat",
     "build:static": "node scripts/build-static.mjs",
     "check": "node scripts/lib/check.mjs",
     "smoke": "node scripts/smoke.mjs",

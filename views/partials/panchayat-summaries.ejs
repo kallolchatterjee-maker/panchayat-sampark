@@ -1,0 +1,95 @@
+<%
+  const summaries = vm.panchayatSummaries || {};
+  const matching = summaries.dataMatching || [];
+  const totals = summaries.dataMatchingTotals || {};
+  const bjp = summaries.bjp || [];
+%>
+<section class="step step-summaries" data-m="panchayat-summaries" data-map-hidden id="panchayat-summaries">
+  <div class="card summaries-card">
+    <p class="k"><span lang="en">PANCHAYAT SUMMARIES</span> · पंचायत सारांश</p>
+    <h2>पंचायत <span class="or">आँकड़े</span></h2>
+
+    <h3 class="summary-title">डेटा मिलान</h3>
+    <div class="summary-kpis" role="group" aria-label="डेटा मिलान की मुख्य संख्याएँ">
+      <div class="summary-kpi"><b><%= num(totals.rawRecords || 0) %></b><span>कुल रिकॉर्ड</span></div>
+      <div class="summary-kpi"><b><%= num(totals.primaryMembers || 0) %></b><span>प्राइमरी सदस्य</span></div>
+      <div class="summary-kpi"><b><%= num(totals.saralUsers || 0) %></b><span>SARAL यूज़र</span></div>
+      <div class="summary-kpi"><b><%= num(totals.karyakarta || 0) %></b><span>कार्यकर्ता</span></div>
+    </div>
+
+    <div class="summary-scroll">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th scope="col">निकाय</th>
+            <th scope="col">रिकॉर्ड</th>
+            <th scope="col">यूनिक मोबाइल</th>
+            <th scope="col">प्राइमरी</th>
+            <th scope="col">नाम मिलान</th>
+            <th scope="col">बूथ भरा</th>
+            <th scope="col">SARAL</th>
+            <th scope="col">SARAL मिलान</th>
+            <th scope="col">कार्यकर्ता</th>
+            <th scope="col">कार्यकर्ता मिलान</th>
+            <th scope="col">कार्यकर्ता बूथ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% matching.forEach((entry) => { %>
+          <tr>
+            <th scope="row"><%= entry.label %></th>
+            <td><%= num(entry.rawRecords) %></td>
+            <td><%= num(entry.uniqueMobiles) %></td>
+            <td><%= num(entry.primaryMembers) %></td>
+            <td><%= num(entry.pmNameMatched) %></td>
+            <td><%= num(entry.pmBoothFilled) %></td>
+            <td><%= num(entry.saralUsers) %></td>
+            <td><%= num(entry.saralNameMatched) %></td>
+            <td><%= num(entry.karyakarta) %></td>
+            <td><%= num(entry.karyakartaNameMatched) %></td>
+            <td><%= num(entry.karyakartaBoothFilled) %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="summary-title">BJP टैगिंग और परिणाम</h3>
+    <div class="summary-scroll">
+      <table class="summary-table bjp-table">
+        <thead>
+          <tr>
+            <th scope="col">पद</th>
+            <th scope="col">कॉलिंग</th>
+            <th scope="col">फ़ोन</th>
+            <th scope="col">क्षेत्र</th>
+            <th scope="col">सविरोध</th>
+            <th scope="col">लॉटरी</th>
+            <th scope="col">निर्विरोध</th>
+            <th scope="col">रिक्त</th>
+            <th scope="col">अंकन नहीं</th>
+            <th scope="col">एक बूथ</th>
+            <th scope="col">कई बूथ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% bjp.forEach((entry) => { %>
+          <tr>
+            <th scope="row"><%= entry.tier %> · <%= entry.designation %></th>
+            <td><%= num(entry.taggedCalling) %></td>
+            <td><%= num(entry.taggedPhone) %></td>
+            <td><%= num(entry.taggedArea) %></td>
+            <td><%= num(entry.contested) %></td>
+            <td><%= num(entry.lottery) %></td>
+            <td><%= num(entry.uncontested) %></td>
+            <td><%= num(entry.vacant) %></td>
+            <td><%= num(entry.notMarked) %></td>
+            <td><%= num(entry.singleBooth) %></td>
+            <td><%= num(entry.multipleBooths) %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

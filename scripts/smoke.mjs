@@ -150,6 +150,7 @@ try {
   check('Lok Sabha filter is wired to the map and AC list', mapSource.includes('selectPc') && mapSource.includes('pc-match') && mainSource.includes('map.selectPc(') && mainSource.includes('setOnPcSelect'));
 
   const teamData = JSON.parse(readFileSync(new URL('../public/team-appointments.json', import.meta.url), 'utf8'));
+  const summaryData = JSON.parse(readFileSync(new URL('../public/panchayat-summaries.json', import.meta.url), 'utf8'));
 
   // Selecting a Lok Sabha seat replaces the zone labels with its own appointment
   // callout plus the AC numbers that touch the seat boundary.
@@ -305,6 +306,7 @@ try {
     ['/js/theme.js', 'theme-toggle'],
     ['/js/team-appointments.js', 'team-tree'],
     ['/team-appointments.json', '"zoneOrder"'],
+    ['/panchayat-summaries.json', '"threeTier"'],
     ['/up-kshetra.json', '"total"'],
     ['/pc-appointments.json', '"pcs"'],
     ['/vendor/d3.min.js', 'd3'],
@@ -366,6 +368,42 @@ try {
     ['हाँ', 'नहीं', 'जानकारी नहीं दी', ''].every((value) => teamData.rows.some((row) => row.dutyInfo === value)) &&
     !teamData.rows.some((row) => /^(Verified|Not Verified)$/.test(row.designation)) &&
     !teamData.rows.some((row) => /^(हाँ|नहीं|जानकारी नहीं दी)$/.test(row.mobile)));
+
+  // Panchayat summaries (Data/Tracker.xlsx summary sheets, materialised as JSON).
+  const tierIds = ['zila', 'kshetra', 'gram'];
+  const tierLabels = tierIds.map((id) =>
+    html.match(new RegExp(`data-tier="${id}"[\\s\\S]{0,200}?aria-label="([^"]+)"`))?.[1] || '');
+  check('three-tier card uses the tracker totals',
+    tierLabels.every((label, index) => {
+      const values = summaryData.threeTier[tierIds[index]];
+      return [values.units, values.head, values.members].every((value) => label.includes(num(value)));
+    }));
+  const reps = Object.values(summaryData.threeTier)
+    .reduce((sum, tier) => sum + tier.head + tier.members, 0);
+  check('hero total matches the refreshed three-tier card',
+    html.includes(`${num(reps)} निर्वाचित प्रतिनिधि`) &&
+    html.includes(`कुल <b>${num(reps)}</b> निर्वाचित पद`));
+  check('panchayat summaries follow the team showcase',
+    html.indexOf('id="team"') < html.indexOf('id="panchayat-summaries"') &&
+    html.indexOf('id="panchayat-summaries"') < html.indexOf('data-m="ac"'));
+  check('panchayat summaries hide the map and show both workbook tables',
+    html.includes('data-m="panchayat-summaries" data-map-hidden') &&
+    html.includes('class="summary-kpis"') && html.includes('class="summary-table') &&
+    html.includes('डेटा मिलान') && html.includes('BJP टैगिंग और परिणाम') &&
+    summaryData.dataMatching.length === 4 && summaryData.bjp.length === 6);
+  const summaryKpis = [...html.matchAll(/<div class="summary-kpi"><b>([^<]+)<\/b><span>([^<]+)<\/span><\/div>/g)]
+    .map((match) => [match[1], match[2]]);
+  check('data matching KPIs come from the tracker',
+    summaryKpis.length === 4 &&
+    ['rawRecords', 'primaryMembers', 'saralUsers', 'karyakarta'].every((field, index) =>
+      summaryKpis[index][0] === num(summaryData.dataMatchingTotals[field])) &&
+    ['कुल रिकॉर्ड', 'प्राइमरी सदस्य', 'SARAL यूज़र', 'कार्यकर्ता']
+      .every((label, index) => summaryKpis[index][1] === label));
+  check('BJP tagging and result rows come from the tracker',
+    summaryData.bjp.every((entry) =>
+      html.includes(`${entry.tier} · ${entry.designation}`) &&
+      [entry.taggedPhone, entry.contested, entry.uncontested, entry.singleBooth]
+        .every((value) => html.includes(num(value)))));
 
   // Six-zone hero map (Data/up_kshetra.geojson → committed public asset).
   const zoneData = JSON.parse(readFileSync(new URL('../public/up-kshetra.json', import.meta.url), 'utf8'));
