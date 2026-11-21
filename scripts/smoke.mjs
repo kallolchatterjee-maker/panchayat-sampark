@@ -337,9 +337,15 @@ try {
   check('team section hides the map and takes full width',
     html.includes('data-map-hidden') && mainSource.includes("classList.toggle('map-hidden'") &&
     cssText.includes('body.map-hidden #map'));
+  const kpis = [...html.matchAll(/<div class="team-kpi"><b>([^<]+)<\/b><span>([^<]+)<\/span><\/div>/g)]
+    .map((match) => [match[1], match[2]]);
   check('team KPIs come from the tracker sheet',
-    html.includes(num(teamData.totals.acs)) && html.includes(num(teamData.totals.zilas)) &&
-    html.includes('विधानसभा टीम'));
+    kpis.length === 5 &&
+    kpis[0][0] === num(teamData.totals.appointed) && kpis[0][1] === 'नियुक्त' &&
+    kpis[1][0] === num(teamData.totals.contacted) && kpis[1][1] === 'संपर्क हुआ' &&
+    kpis[2][0] === num(teamData.totals.verified) && kpis[2][1] === 'सत्यापित' &&
+    kpis[3][0] === num(teamData.totals.dutyYes) && kpis[3][1] === 'दायित्व: हाँ' &&
+    kpis[4][0] === `${num(teamData.totals.acs)}/${num(teamData.totals.acsTarget)}` && kpis[4][1] === 'विधानसभा टीम');
   check('team JSON has every appointment row', teamData.rows.length === teamData.totals.names && teamData.totals.names > 0);
   check('team JSON covers all six zones and every Vidhan Sabha team',
     teamData.zoneOrder.length === 6 && teamData.totals.acs <= teamData.totals.acsTarget && teamData.totals.acsTarget === 403);

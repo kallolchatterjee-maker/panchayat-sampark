@@ -140,8 +140,10 @@ def build():
         "zilas": len({row["zila"] for row in assembly_rows if row["zila"]}),
         "acs": len({row["ac"] for row in assembly_rows if row["ac"]}),
         "acsTarget": 403,
+        "contacted": sum(1 for row in rows if row["callingStatus"] == "संपर्क हुआ"),
         "verified": sum(1 for row in rows if row["verification"] == "Verified"),
         "notVerified": sum(1 for row in rows if row["verification"] == "Not Verified"),
+        "dutyYes": sum(1 for row in rows if row["dutyInfo"] == "हाँ"),
     }
 
     payload = {"totals": totals, "zoneOrder": zone_order, "rows": rows}
