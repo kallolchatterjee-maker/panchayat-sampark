@@ -105,7 +105,7 @@
         entry.target.classList.add('is-visible');
         observer.unobserve(entry.target);
       }
-    }, { threshold: 0.08, rootMargin: '0px 0px -6% 0px' });
+    }, { threshold: 0.01, rootMargin: '0px 0px 8% 0px' });
 
     const countObserver = new IntersectionObserver((entries, observer) => {
       for (const entry of entries) {
@@ -113,7 +113,7 @@
         observer.unobserve(entry.target);
         animateCount(entry.target, countDelays.get(entry.target) || 0);
       }
-    }, { threshold: 0.2, rootMargin: '0px 0px -4% 0px' });
+    }, { threshold: 0.1, rootMargin: '0px 0px 8% 0px' });
 
     revealTargets.forEach((element) => revealObserver.observe(element));
     countTargets.forEach((element) => countObserver.observe(element));

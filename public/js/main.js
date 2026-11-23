@@ -240,26 +240,48 @@ function pickStep() {
   return found;
 }
 
-function applyScrollState(force = false) {
-  scrollQueued = false;
-  const step = pickStep();
+function applyScrollState(force = false, chosenStep = null) {
+  const step = chosenStep || pickStep();
   if (!step || (!force && step === currentStep)) return;
   currentStep = step;
   for (const candidate of steps) candidate.classList.toggle('on', candidate === step);
   const mode = step.dataset.m || 'dt';
-  if (force || map.mode !== mode) map.setMode(mode);
+  const mapHidden = step.hasAttribute('data-map-hidden');
+  // Full-width sections paint over the map; defer the expensive D3 mode work
+  // until the map is visible again so the fade transition stays smooth.
+  document.body.classList.toggle('map-hidden', mapHidden);
+  if (!mapHidden && (force || map.mode !== mode)) map.setMode(mode);
   if (mode === 'network') villageNetwork?.show();
   else villageNetwork?.hide();
-  // The team section takes the full width and replaces the sticky map.
-  document.body.classList.toggle('map-hidden', step.hasAttribute('data-map-hidden'));
   const layerButton = document.querySelector(`.layers button[data-layer="${mode}"]`);
   if (layerButton) layerButton.setAttribute('aria-pressed', 'true');
 }
 
-function onScroll() {
-  if (scrollQueued) return;
-  scrollQueued = true;
-  requestAnimationFrame(() => applyScrollState());
+// A 1%-tall band at the viewport midpoint replaces the per-frame scroll
+// listener: the observer only fires when the active step actually changes.
+const stepObserver = 'IntersectionObserver' in window
+  ? new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) applyScrollState(false, entry.target);
+        }
+      },
+      { rootMargin: '-49% 0px -50% 0px', threshold: 0 },
+    )
+  : null;
+
+if (stepObserver) {
+  steps.forEach((step) => stepObserver.observe(step));
+} else {
+  // Legacy fallback: coalesce scroll events to one state update per frame.
+  window.addEventListener('scroll', () => {
+    if (scrollQueued) return;
+    scrollQueued = true;
+    requestAnimationFrame(() => {
+      scrollQueued = false;
+      applyScrollState();
+    });
+  }, { passive: true });
 }
 
 // ------------------------------------------------------------------- drilldown
@@ -708,7 +730,6 @@ map.ready.then(() => {
   lastScatterWidth = document.getElementById('scatter')?.clientWidth ?? 0;
 });
 
-window.addEventListener('scroll', onScroll, { passive: true });
 window.addEventListener('orientationchange', () => setTimeout(applyScrollState, 250));
 
 // Deep link: /#ac-135 opens the drill-down straight away.

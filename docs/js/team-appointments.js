@@ -182,13 +182,35 @@
   const dataVersion = scriptParams.get('v') || scriptParams.get('ui') || '';
   const teamDataUrl = `/team-appointments.json${dataVersion ? `?v=${encodeURIComponent(dataVersion)}` : ''}`;
 
-  fetch(teamDataUrl)
-    .then((response) => {
-      if (!response.ok) throw new Error(`team data → ${response.status}`);
-      return response.json();
-    })
-    .then(render)
-    .catch(() => {
-      tree.innerHTML = '<li class="team-error">डेटा लोड नहीं हो सका।</li>';
-    });
+  // Build the large tree only when the section is close to the viewport. The
+  // reserved min-height in CSS keeps the scroll position stable while loading.
+  tree.innerHTML = '<li class="team-loading">टीम संरचना लोड हो रही है…</li>';
+  let started = false;
+  function loadTree() {
+    if (started) return;
+    started = true;
+    fetch(teamDataUrl)
+      .then((response) => {
+        if (!response.ok) throw new Error(`team data → ${response.status}`);
+        return response.json();
+      })
+      .then(render)
+      .catch(() => {
+        tree.innerHTML = '<li class="team-error">डेटा लोड नहीं हो सका।</li>';
+      });
+  }
+
+  if ('IntersectionObserver' in window) {
+    const loader = new IntersectionObserver(
+      (entries, observer) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        loadTree();
+      },
+      { rootMargin: '900px 0px' },
+    );
+    loader.observe(tree.closest('.step') || tree);
+  } else {
+    loadTree();
+  }
 })();

@@ -253,6 +253,8 @@ textarea {
     radial-gradient(120% 90% at 70% 20%, var(--map-bg-a) 0%, var(--map-bg-b) 55%, var(--map-bg-c) 100%);
   overflow: hidden;
   z-index: 1;
+  /* Fade instead of display:none when a full-width section takes over. */
+  transition: opacity 260ms ease, visibility 0s linear 0s;
 }
 
 #svg {
@@ -2629,13 +2631,22 @@ input::placeholder,
 }
 
 /* ------------------------------------------------------- team appointments */
-/* The team section replaces the sticky map for its whole scroll range. */
-body.map-hidden #map {
-  display: none;
+/* Full-width workbook sections break out of the story column without ever
+   resizing .steps — resizing it used to reflow every card on the page and
+   caused the visible jump after the team structure section. */
+.step[data-map-hidden] {
+  width: 100vw;
+  max-width: none;
 }
 
-body.map-hidden .steps {
-  width: 100%;
+/* Keep the map in the layout, fade it out, and let the full-width cards paint
+   over it. `visibility` is delayed until the fade finishes so the map is still
+   paintable during the transition. */
+body.map-hidden #map {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 260ms ease, visibility 0s linear 260ms;
 }
 
 .step-team {
@@ -2715,6 +2726,15 @@ body.map-hidden .steps {
 .team-scroll {
   overflow-x: auto;
   padding: 8px 0 26px;
+  /* Reserve room while the tree is lazily built so the section never jumps. */
+  min-height: 240px;
+}
+
+.team-loading {
+  padding: 48px 12px;
+  color: var(--mute);
+  font-weight: 600;
+  text-align: center;
 }
 
 .team-wrap {
@@ -3023,6 +3043,38 @@ body.map-hidden .steps {
   [data-reveal].is-visible {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* Native scroll-driven motion. The browser maps card progress to scroll
+   position, so there is no per-frame JavaScript work. Browsers without view
+   timelines keep the IntersectionObserver reveal above as the fallback. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes card-in-view {
+      from {
+        opacity: 0;
+        transform: translate3d(0, 26px, 0);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    .step:not(#hero) > .card {
+      animation: card-in-view linear both;
+      animation-timeline: view(block);
+      animation-range: entry 0% entry 100%;
+    }
+
+    /* The lazy observer still tags these cards; let the scroll timeline own
+       their opacity/transform instead of running a second transition. */
+    .step:not(#hero) > .card[data-reveal] {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
   }
 }
 
