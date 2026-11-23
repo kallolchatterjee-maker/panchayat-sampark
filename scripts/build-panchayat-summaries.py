@@ -179,6 +179,15 @@ def build_three_tier(rows):
     }
 
 
+def first_number(cells, *columns):
+    """Read the first populated column, tolerating the workbook's '-' blanks."""
+    for column in columns:
+        value = cells.get(column)
+        if value and value not in {"-", "—", "NaN"}:
+            return number(value)
+    return 0
+
+
 def build_bjp(rows):
     ordered = sorted(rows)
     primary = []
@@ -190,18 +199,25 @@ def build_bjp(rows):
             tier = cells["A"].split("\n", 1)[0]
         if not designation or designation.startswith("Contested"):
             continue
-        if not cells.get("C"):
+        total = number(cells.get("C"))
+        # The header row now carries "Total Data" in C; ignore it and any
+        # tier-less totals that are not real panchayat rows.
+        if not tier or total <= 0:
             continue
         primary.append((row_number, tier, designation, cells))
 
     entries = []
     for index, (row_number, tier, designation, cells) in enumerate(primary):
         next_primary = primary[index + 1][0] if index + 1 < len(primary) else max(ordered) + 1
+        # The "Overall" mapping row moved from column M to P in the updated
+        # workbook, with booth counts moving from N/O to Q/R. Keep the old
+        # columns as a fallback so older tracker copies still work.
         overall = next(
             (
                 rows[candidate]
                 for candidate in range(row_number + 1, next_primary)
-                if rows.get(candidate, {}).get("M") == "Overall"
+                if rows.get(candidate, {}).get("P") == "Overall"
+                or rows.get(candidate, {}).get("M") == "Overall"
             ),
             {},
         )
@@ -216,8 +232,8 @@ def build_bjp(rows):
         }
         for column, field in BJP_FIELDS:
             entry[field] = number(cells.get(column))
-        entry["singleBooth"] = number(overall.get("N"))
-        entry["multipleBooths"] = number(overall.get("O"))
+        entry["singleBooth"] = first_number(overall, "Q", "N")
+        entry["multipleBooths"] = first_number(overall, "R", "O")
         entries.append(entry)
     return entries
 

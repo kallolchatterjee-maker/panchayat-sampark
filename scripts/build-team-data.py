@@ -97,47 +97,66 @@ def load_rows():
     return rows
 
 
-SUMMARY_LEVELS = (
-    ("zone", "Zone"),
-    ("cluster", "Lok Sabha Cluster Incharge"),
-    ("pravasi", "Lok Sabha Pravasi"),
-    ("vidhanSabha", "Vidhan Sabha"),
-    ("total", "Total"),
-)
+def build_summary(rows, totals):
+    """Derive the headline numbers from the full Team Appointment sheet.
 
+    The workbook's Summary sheet uses COUNTIFS over $B$4:$B24, a range that was
+    never extended as the team grew past 1,200 rows. Its cached values are
+    therefore stale (e.g. 5/403 while the team sheet has 1,207 appointments).
+    Computing from the same rows that drive the map keeps every number in sync.
+    """
+    appointed = [row for row in rows if "appoint" in row["status"].lower()]
 
-def whole_number(value):
-    if not value:
-        return 0
-    try:
-        return int(Decimal(value))
-    except Exception:
-        return 0
+    def at(level, appointed_only=False):
+        source = appointed if appointed_only else rows
+        return [row for row in source if row["level"] == level]
 
+    def saral_count(items):
+        return sum(1 for row in items if row.get("saral"))
 
-def build_summary():
-    """Materialise the workbook's 'Summary' sheet for the page headline numbers."""
-    strings, sheet_root = load_sheet("Summary")
-    result = {}
-    for row in sheet_root.find("m:sheetData", NS):
-        if int(row.attrib.get("r", 0)) < 5:
-            continue
-        cells = {}
-        for cell in row.findall("m:c", NS):
-            column, value = cell_value(cell, strings)
-            if value:
-                cells[column] = value
-        label = cells.get("A", "")
-        for key, prefix in SUMMARY_LEVELS:
-            if label.startswith(prefix) and key not in result:
-                result[key] = {
-                    "target": whole_number(cells.get("B")),
-                    "appointed": whole_number(cells.get("C")),
-                    "pending": whole_number(cells.get("D")),
-                    "personsAppointed": whole_number(cells.get("E")),
-                    "enteredSaral": whole_number(cells.get("F")),
-                }
-    return result
+    def entry(target, posts, persons, saral):
+        return {
+            "target": target,
+            "appointed": posts,
+            "pending": max(0, target - posts),
+            "personsAppointed": persons,
+            "enteredSaral": saral,
+        }
+
+    zone_rows = at("Zone", True)
+    cluster_rows = at("Lok Sabha Cluster Incharge", True)
+    pravasi_rows = at("Lok Sabha Pravasi", True)
+    vs_rows = at("Vidhan Sabha")
+    vs_appointed = at("Vidhan Sabha", True)
+
+    # A Vidhan Sabha team is counted once its संयोजक is appointed; the
+    # सह-संयोजक rows are the additional persons in that team.
+    vs_teams = {
+        row["ac"]
+        for row in vs_appointed
+        if row["ac"] and row["role"] == "संयोजक"
+    }
+
+    zone = entry(6, len(zone_rows), len(zone_rows), saral_count(zone_rows))
+    cluster = entry(20, len(cluster_rows), len(cluster_rows), saral_count(cluster_rows))
+    pravasi = entry(80, len(pravasi_rows), len(pravasi_rows), saral_count(pravasi_rows))
+    vidhan_sabha = entry(403, len(vs_teams), len(vs_appointed), saral_count(vs_appointed))
+
+    total_posts = (
+        zone["appointed"]
+        + cluster["appointed"]
+        + pravasi["appointed"]
+        + vidhan_sabha["appointed"]
+    )
+    total = entry(509, total_posts, totals["appointed"], saral_count(appointed))
+
+    return {
+        "zone": zone,
+        "cluster": cluster,
+        "pravasi": pravasi,
+        "vidhanSabha": vidhan_sabha,
+        "total": total,
+    }
 
 
 def build():
@@ -199,7 +218,7 @@ def build():
     TARGET.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"{TARGET.relative_to(ROOT)}: {len(rows)} rows, {totals['acs']} Vidhan Sabha teams")
 
-    summary = build_summary()
+    summary = build_summary(rows, totals)
     SUMMARY_TARGET.write_text(
         json.dumps(summary, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
     )

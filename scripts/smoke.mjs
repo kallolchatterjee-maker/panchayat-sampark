@@ -320,16 +320,24 @@ try {
     check(`asset ${path} is served`, asset.status === 200 && body.includes(needle), String(asset.status));
   }
 
-  // Scroll-driven reveal and number counters are progressive enhancements.
+  // GSAP scroll motion and number counters are progressive enhancements.
   const motionSource = readFileSync(new URL('../public/js/ui-motion.js', import.meta.url), 'utf8');
-  check('scroll reveal and counters are wired with reduced-motion fallback',
+  const loaderSource = readFileSync(new URL('../public/js/motion-loader.js', import.meta.url), 'utf8');
+  const cardSource = readFileSync(new URL('../public/js/gsap-text.js', import.meta.url), 'utf8');
+  check('GSAP scroll motion and counters are wired with reduced-motion fallback',
     html.includes('/js/ui-motion.js?v=') &&
-    /app\.css\?v=[^"]*ui=40/.test(html) &&
-    /team-appointments\.js\?v=[^"]*ui=6/.test(html) &&
-    ['IntersectionObserver', 'requestAnimationFrame', "prefers-reduced-motion: reduce", 'dataset.reveal =', '.team-kpi > b']
+    html.includes('/js/motion-loader.js?v=') &&
+    html.includes('/vendor/gsap.min.js?v=') &&
+    html.includes('/vendor/ScrollTrigger.min.js?v=') &&
+    ['IntersectionObserver', 'requestAnimationFrame', 'prefers-reduced-motion: reduce', '.team-kpi > b']
       .every((token) => motionSource.includes(token)) &&
-    /\[data-reveal\]\.is-visible/.test(cssText) &&
-    cssText.includes('@media (prefers-reduced-motion: no-preference)'));
+    loaderSource.includes('gsap-text.js') &&
+    loaderSource.includes('ScrollTrigger.create') &&
+    loaderSource.includes('prefers-reduced-motion: reduce') &&
+    cardSource.includes('export function initCardTextMotion') &&
+    cardSource.includes('trigger: card') &&
+    cssText.includes('.gsap-pending') &&
+    cssText.includes('.hero-ready'));
 
   // ------------------------------------------------------------------ theming
   const tileRule = cssText.match(/\.tile\s*\{([^}]*)\}/)?.[1] ?? '';
@@ -363,7 +371,7 @@ try {
     kpis[3][0] === num(teamData.totals.dutyYes) && kpis[3][1] === 'दायित्व: हाँ' &&
     kpis[4][0] === `${num(trackerSummary.vidhanSabha.appointed)}/${num(trackerSummary.vidhanSabha.target)}` && kpis[4][1] === 'विधानसभा टीम');
   check('team JSON has every appointment row', teamData.rows.length === teamData.totals.names && teamData.totals.names > 0);
-  check('all tracker-backed page numbers come from the workbook Summary sheet',
+  check('all tracker-backed page numbers reconcile with the full team sheet',
     html.includes(`· ${num(trackerSummary.total.personsAppointed)} ज़मीनी टीम`) &&
     html.includes(`<div class="big">${num(trackerSummary.total.personsAppointed)} <span class="big-sub">कुल ज़मीनी टीम`) &&
     html.includes(`<td>${num(trackerSummary.vidhanSabha.personsAppointed)}</td>`) &&
