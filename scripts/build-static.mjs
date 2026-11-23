@@ -76,7 +76,7 @@ async function build() {
   if (rendered.includes('src="/') || rendered.includes('href="/') || rendered.includes('<%')) {
     throw new Error('static snapshot still has root-relative URLs or unresolved EJS');
   }
-  for (const needle of ['./js/static-api.js', './js/auth-gate.js', 'id="boot"', 'id="team"', 'id="panchayat-summaries"', 'id="ward-bars"', './js/team-appointments.js', 'id="gz"', 'id="pc-appointment-view"']) {
+  for (const needle of ['./js/static-api.js', './js/auth-gate.js', './js/ui-motion.js', 'id="boot"', 'id="team"', 'id="panchayat-summaries"', 'id="ward-bars"', './js/team-appointments.js', 'id="gz"', 'id="pc-appointment-view"']) {
     if (!rendered.includes(needle)) throw new Error(`static snapshot is missing ${needle}`);
   }
   await readFile(join(OUT, 'team-appointments.json'));

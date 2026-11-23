@@ -178,7 +178,11 @@
     });
   });
 
-  fetch('/team-appointments.json')
+  const scriptParams = new URLSearchParams(document.currentScript?.src.split('?')[1] || '');
+  const dataVersion = scriptParams.get('v') || scriptParams.get('ui') || '';
+  const teamDataUrl = `/team-appointments.json${dataVersion ? `?v=${encodeURIComponent(dataVersion)}` : ''}`;
+
+  fetch(teamDataUrl)
     .then((response) => {
       if (!response.ok) throw new Error(`team data → ${response.status}`);
       return response.json();

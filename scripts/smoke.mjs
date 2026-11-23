@@ -304,6 +304,7 @@ try {
     ['/js/map.js', 'createMap'],
     ['/js/network.js', 'createVillageNetwork'],
     ['/js/theme.js', 'theme-toggle'],
+    ['/js/ui-motion.js', 'IntersectionObserver'],
     ['/js/team-appointments.js', 'team-tree'],
     ['/team-appointments.json', '"zoneOrder"'],
     ['/panchayat-summaries.json', '"threeTier"'],
@@ -316,6 +317,17 @@ try {
     const body = await asset.text();
     check(`asset ${path} is served`, asset.status === 200 && body.includes(needle), String(asset.status));
   }
+
+  // Scroll-driven reveal and number counters are progressive enhancements.
+  const motionSource = readFileSync(new URL('../public/js/ui-motion.js', import.meta.url), 'utf8');
+  check('scroll reveal and counters are wired with reduced-motion fallback',
+    html.includes('/js/ui-motion.js?v=') &&
+    /app\.css\?v=[^"]*ui=40/.test(html) &&
+    /team-appointments\.js\?v=[^"]*ui=6/.test(html) &&
+    ['IntersectionObserver', 'requestAnimationFrame', "prefers-reduced-motion: reduce", 'dataset.reveal =', '.team-kpi > b']
+      .every((token) => motionSource.includes(token)) &&
+    /\[data-reveal\]\.is-visible/.test(cssText) &&
+    cssText.includes('@media (prefers-reduced-motion: no-preference)'));
 
   // ------------------------------------------------------------------ theming
   const tileRule = cssText.match(/\.tile\s*\{([^}]*)\}/)?.[1] ?? '';
@@ -356,7 +368,7 @@ try {
     teamData.rows.every((row) => !/[Ee]/.test(row.mobile)));
   check('team tree is wired for search and expand/collapse',
     ['team-search', 'team-expand', 'team-collapse', 'team-tree'].every((id) => html.includes(`id="${id}"`)) &&
-    ['team-node', 'team-hit', "fetch('/team-appointments.json')"].every((token) => teamScript.includes(token)));
+    ['team-node', 'team-hit', 'const teamDataUrl', 'fetch(teamDataUrl)'].every((token) => teamScript.includes(token)));
   check('team cards use a horizontal row layout',
     /\.team-node-card\s*\{[^}]*flex-direction:\s*row/.test(cssText) &&
     /\.team-people\s*\{[^}]*flex-direction:\s*column/.test(cssText) &&
