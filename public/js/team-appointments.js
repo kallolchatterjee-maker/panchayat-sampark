@@ -186,6 +186,22 @@
   // reserved min-height in CSS keeps the scroll position stable while loading.
   tree.innerHTML = '<li class="team-loading">टीम संरचना लोड हो रही है…</li>';
   let started = false;
+
+  function animateTree() {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || !window.gsap) return;
+    const cards = tree.querySelectorAll(':scope > li > .team-node-card');
+    if (cards.length) {
+      window.gsap.from(cards, {
+        opacity: 0,
+        y: 18,
+        duration: 0.6,
+        stagger: 0.07,
+        ease: 'power3.out',
+        clearProps: 'opacity,transform',
+      });
+    }
+  }
+
   function loadTree() {
     if (started) return;
     started = true;
@@ -194,13 +210,31 @@
         if (!response.ok) throw new Error(`team data → ${response.status}`);
         return response.json();
       })
-      .then(render)
+      .then((data) => {
+        render(data);
+        animateTree();
+      })
       .catch(() => {
         tree.innerHTML = '<li class="team-error">डेटा लोड नहीं हो सका।</li>';
       });
   }
 
-  if ('IntersectionObserver' in window) {
+  // ScrollTrigger fetches the tree before the section arrives, so the lazy
+  // DOM build never happens in the middle of the team/summaries transition.
+  const section = tree.closest('.step') || tree;
+  const hasScrollTrigger =
+    typeof window.gsap !== 'undefined' && typeof window.ScrollTrigger !== 'undefined';
+
+  if (hasScrollTrigger) {
+    window.gsap.registerPlugin(window.ScrollTrigger);
+    window.ScrollTrigger.create({
+      trigger: section,
+      start: 'top bottom+=900',
+      once: true,
+      onEnter: loadTree,
+    });
+    if (section.getBoundingClientRect().top < window.innerHeight + 900) loadTree();
+  } else if ('IntersectionObserver' in window) {
     const loader = new IntersectionObserver(
       (entries, observer) => {
         if (!entries.some((entry) => entry.isIntersecting)) return;
@@ -209,7 +243,7 @@
       },
       { rootMargin: '900px 0px' },
     );
-    loader.observe(tree.closest('.step') || tree);
+    loader.observe(section);
   } else {
     loadTree();
   }

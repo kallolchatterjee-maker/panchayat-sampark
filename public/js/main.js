@@ -1,10 +1,8 @@
 // Client entry: wires the D3 map to the scrollytelling cards, the
 // drill-down panel, village search and the density scatter.
 const boot = JSON.parse(document.getElementById('boot').textContent);
-const [{ createMap }, { createVillageNetwork }] = await Promise.all([
-  import(`./map.js?v=${encodeURIComponent(boot.v)}&ui=29`),
-  import(`./network.js?v=${encodeURIComponent(boot.v)}&ui=24`),
-]);
+// The village network is heavy; load it only when its section approaches.
+const { createMap } = await import(`./map.js?v=${encodeURIComponent(boot.v)}&ui=29`);
 const nf = new Intl.NumberFormat('en-IN');
 const n = (value) => nf.format(Math.round(Number(value) || 0));
 const d = (value, digits = 1) => (Number.isFinite(Number(value)) ? Number(value).toFixed(digits) : '—');
@@ -137,6 +135,39 @@ motionQuery.addEventListener?.('change', (event) => {
 });
 let villageNetwork = null;
 
+// --------------------------------------------------------- GSAP lazy loading
+const hasScrollTrigger =
+  typeof window.gsap !== 'undefined' && typeof window.ScrollTrigger !== 'undefined';
+if (hasScrollTrigger) window.gsap.registerPlugin(window.ScrollTrigger);
+
+function lazyOnEnter(element, offset, callback) {
+  if (!element) return;
+  if (hasScrollTrigger) {
+    window.ScrollTrigger.create({
+      trigger: element,
+      start: `top bottom+=${offset}`,
+      once: true,
+      onEnter: callback,
+    });
+    // Handle deep links that start past the trigger.
+    if (element.getBoundingClientRect().top < window.innerHeight + offset) callback();
+    return;
+  }
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        obs.disconnect();
+        callback();
+      },
+      { rootMargin: `${offset}px` },
+    );
+    observer.observe(element);
+    return;
+  }
+  callback();
+}
+
 // -------------------------------------------------------- Lok Sabha filter
 // The option list is built from Data/UTTAR PRADESH_parliament.geojson by the
 // view model; boot.acs[11] carries each AC's PC_NO for the narrow list.
@@ -251,8 +282,11 @@ function applyScrollState(force = false, chosenStep = null) {
   // until the map is visible again so the fade transition stays smooth.
   document.body.classList.toggle('map-hidden', mapHidden);
   if (!mapHidden && (force || map.mode !== mode)) map.setMode(mode);
-  if (mode === 'network') villageNetwork?.show();
-  else villageNetwork?.hide();
+  if (mode === 'network') {
+    ensureVillageNetwork().then((instance) => instance.show()).catch(console.error);
+  } else {
+    villageNetwork?.hide();
+  }
   const layerButton = document.querySelector(`.layers button[data-layer="${mode}"]`);
   if (layerButton) layerButton.setAttribute('aria-pressed', 'true');
 }
@@ -498,20 +532,39 @@ function highlightVillage(id) {
   map.highlightVillage(key);
 }
 
-villageNetwork = createVillageNetwork({
-  onVillageClick: async (acNo, id) => {
-    await showAc(acNo, { focusPanel: true });
-    highlightVillage(id);
-    document.getElementById('drill').scrollIntoView({
-      behavior: reducedMotion ? 'auto' : 'smooth',
+let networkPromise = null;
+function ensureVillageNetwork() {
+  if (villageNetwork) return Promise.resolve(villageNetwork);
+  if (networkPromise) return networkPromise;
+  networkPromise = import(
+    `./network.js?v=${encodeURIComponent(boot.v)}&ui=25`
+  )
+    .then(({ createVillageNetwork }) => {
+      villageNetwork = createVillageNetwork({
+        onVillageClick: async (acNo, id) => {
+          await showAc(acNo, { focusPanel: true });
+          highlightVillage(id);
+          document.getElementById('drill').scrollIntoView({
+            behavior: reducedMotion ? 'auto' : 'smooth',
+          });
+        },
+      });
+      return villageNetwork;
+    })
+    .catch((error) => {
+      networkPromise = null;
+      throw error;
     });
-  },
-});
+  return networkPromise;
+}
 
 document.querySelector('.layers').addEventListener('click', (event) => {
   const button = event.target.closest('button[data-layer]');
-  if (button?.dataset.layer === 'network') villageNetwork.show();
-  else villageNetwork.hide();
+  if (button?.dataset.layer === 'network') {
+    ensureVillageNetwork().then((instance) => instance.show()).catch(console.error);
+  } else {
+    villageNetwork?.hide();
+  }
 });
 
 map.setOnAcClick((no) => showAc(no));
@@ -612,6 +665,7 @@ document.addEventListener('click', (event) => {
 });
 
 // ------------------------------------------------------------- density scatter
+let scatterReady = false;
 function renderScatter() {
   const host = document.getElementById('scatter');
   if (!host || !window.d3) return;
@@ -705,6 +759,7 @@ function renderScatter() {
     .attr('text-anchor', (row) => (x(row.density) > width - 90 ? 'end' : 'start'))
     .attr('dx', (row) => (x(row.density) > width - 90 ? -5 : 0))
     .text((row) => row.name);
+  scatterReady = true;
 }
 
 // ----------------------------------------------------------------------- start
@@ -714,7 +769,7 @@ window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     const host = document.getElementById('scatter');
-    if (host && Math.abs(host.clientWidth - lastScatterWidth) > 24) {
+    if (scatterReady && host && Math.abs(host.clientWidth - lastScatterWidth) > 24) {
       lastScatterWidth = host.clientWidth;
       renderScatter();
     }
@@ -726,9 +781,21 @@ map.ready.then(() => {
   // The map has just finished its first paint; force the current scroll step
   // to sync instead of skipping because it was marked current while loading.
   applyScrollState(true);
-  renderScatter();
-  lastScatterWidth = document.getElementById('scatter')?.clientWidth ?? 0;
 });
+
+// GSAP ScrollTrigger lazy loading: heavy visuals are created only when their
+// section is within a viewport or two, instead of during initial page startup.
+lazyOnEnter(document.getElementById('village-network'), 900, () => {
+  ensureVillageNetwork().catch(console.error);
+});
+lazyOnEnter(
+  document.getElementById('scatter')?.closest('.step') || document.getElementById('scatter'),
+  500,
+  () => {
+    renderScatter();
+    lastScatterWidth = document.getElementById('scatter')?.clientWidth ?? 0;
+  },
+);
 
 window.addEventListener('orientationchange', () => setTimeout(applyScrollState, 250));
 
