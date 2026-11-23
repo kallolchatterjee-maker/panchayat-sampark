@@ -35,6 +35,21 @@
     ].join(',')),
   ];
 
+  // Headlines get a Codrops-style clipped lift: kicker → title → subheading.
+  // Dedupe because .summary-title is also an h3 and .big may wrap other text.
+  const textTargets = [
+    ...new Set([
+      ...document.querySelectorAll([
+        '.step .k',
+        '.step h1',
+        '.step h2',
+        '.step h3',
+        '.step .big',
+        '.step .hero-intro',
+      ].join(',')),
+    ]),
+  ];
+
   function tokenise(text) {
     return [...text.matchAll(numberPattern)].map((match) => {
       const raw = match[0];
@@ -97,6 +112,19 @@
       element.style.setProperty('--reveal-delay', `${(index % 5) * 55}ms`);
     });
 
+    // Reset the stagger per step so a late card doesn't inherit a long delay
+    // from all the headings above it.
+    const textOrder = new Map();
+    textTargets.forEach((element) => {
+      const step = element.closest('.step') || document.body;
+      const order = Math.min(textOrder.get(step) || 0, 6);
+      textOrder.set(step, order + 1);
+      element.dataset.textReveal = '';
+      element.style.setProperty('--text-delay', `${order * 110}ms`);
+      element.style.setProperty('--text-range-start', `${4 + order * 4}%`);
+      element.style.setProperty('--text-range-end', `${72 + order * 4}%`);
+    });
+
     const countDelays = new Map(countTargets.map((element, index) => [element, (index % 5) * 45]));
 
     const revealObserver = new IntersectionObserver((entries, observer) => {
@@ -107,6 +135,14 @@
       }
     }, { threshold: 0.01, rootMargin: '0px 0px 8% 0px' });
 
+    const textObserver = new IntersectionObserver((entries, observer) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add('is-inview');
+        observer.unobserve(entry.target);
+      }
+    }, { threshold: 0.05, rootMargin: '0px 0px 6% 0px' });
+
     const countObserver = new IntersectionObserver((entries, observer) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
@@ -116,11 +152,16 @@
     }, { threshold: 0.1, rootMargin: '0px 0px 8% 0px' });
 
     revealTargets.forEach((element) => revealObserver.observe(element));
+    textTargets.forEach((element) => textObserver.observe(element));
     countTargets.forEach((element) => countObserver.observe(element));
   } catch (error) {
     revealTargets.forEach((element) => {
       element.removeAttribute('data-reveal');
       element.classList.add('is-visible');
+    });
+    textTargets.forEach((element) => {
+      delete element.dataset.textReveal;
+      element.classList.add('is-inview');
     });
     countTargets.forEach((element) => {
       delete element.dataset.count;
