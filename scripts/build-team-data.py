@@ -17,8 +17,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "Data" / "Tracker.xlsx"
 TARGET = ROOT / "public" / "team-appointments.json"
+SUMMARY_TARGET = ROOT / "public" / "tracker-summary.json"
 MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
 NS = {"m": MAIN_NS}
+REL_NS = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
 
 
 def shared_strings(archive):
@@ -64,19 +66,22 @@ def as_text(value):
     return "" if value in {"-", "—", "NaN"} else value
 
 
-def load_rows():
+def load_sheet(name):
     with zipfile.ZipFile(SOURCE) as archive:
         strings = shared_strings(archive)
         workbook = ET.fromstring(archive.read("xl/workbook.xml"))
         rels = ET.fromstring(archive.read("xl/_rels/workbook.xml.rels"))
         targets = {item.attrib["Id"]: item.attrib["Target"] for item in rels}
-        relationship = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
         sheets = list(workbook.find("m:sheets", NS))
-        sheet = next(item for item in sheets if item.attrib.get("name") == "Team Appointment")
-        target = targets[sheet.attrib[relationship]].lstrip("/")
+        sheet = next(item for item in sheets if item.attrib.get("name") == name)
+        target = targets[sheet.attrib[REL_NS]].lstrip("/")
         if not target.startswith("xl/"):
             target = "xl/" + target
-        sheet_root = ET.fromstring(archive.read(target))
+        return strings, ET.fromstring(archive.read(target))
+
+
+def load_rows():
+    strings, sheet_root = load_sheet("Team Appointment")
 
     rows = []
     for row in sheet_root.find("m:sheetData", NS):
@@ -90,6 +95,49 @@ def load_rows():
                 cells[column] = value
         rows.append(cells)
     return rows
+
+
+SUMMARY_LEVELS = (
+    ("zone", "Zone"),
+    ("cluster", "Lok Sabha Cluster Incharge"),
+    ("pravasi", "Lok Sabha Pravasi"),
+    ("vidhanSabha", "Vidhan Sabha"),
+    ("total", "Total"),
+)
+
+
+def whole_number(value):
+    if not value:
+        return 0
+    try:
+        return int(Decimal(value))
+    except Exception:
+        return 0
+
+
+def build_summary():
+    """Materialise the workbook's 'Summary' sheet for the page headline numbers."""
+    strings, sheet_root = load_sheet("Summary")
+    result = {}
+    for row in sheet_root.find("m:sheetData", NS):
+        if int(row.attrib.get("r", 0)) < 5:
+            continue
+        cells = {}
+        for cell in row.findall("m:c", NS):
+            column, value = cell_value(cell, strings)
+            if value:
+                cells[column] = value
+        label = cells.get("A", "")
+        for key, prefix in SUMMARY_LEVELS:
+            if label.startswith(prefix) and key not in result:
+                result[key] = {
+                    "target": whole_number(cells.get("B")),
+                    "appointed": whole_number(cells.get("C")),
+                    "pending": whole_number(cells.get("D")),
+                    "personsAppointed": whole_number(cells.get("E")),
+                    "enteredSaral": whole_number(cells.get("F")),
+                }
+    return result
 
 
 def build():
@@ -150,6 +198,16 @@ def build():
     TARGET.parent.mkdir(parents=True, exist_ok=True)
     TARGET.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"{TARGET.relative_to(ROOT)}: {len(rows)} rows, {totals['acs']} Vidhan Sabha teams")
+
+    summary = build_summary()
+    SUMMARY_TARGET.write_text(
+        json.dumps(summary, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
+    )
+    print(
+        f"{SUMMARY_TARGET.relative_to(ROOT)}: "
+        f"{summary['vidhanSabha']['appointed']}/{summary['vidhanSabha']['target']} "
+        f"Vidhan Sabha, {summary['total']['personsAppointed']} persons appointed"
+    )
 
 
 if __name__ == "__main__":

@@ -151,6 +151,7 @@ try {
 
   const teamData = JSON.parse(readFileSync(new URL('../public/team-appointments.json', import.meta.url), 'utf8'));
   const summaryData = JSON.parse(readFileSync(new URL('../public/panchayat-summaries.json', import.meta.url), 'utf8'));
+  const trackerSummary = JSON.parse(readFileSync(new URL('../public/tracker-summary.json', import.meta.url), 'utf8'));
 
   // Selecting a Lok Sabha seat replaces the zone labels with its own appointment
   // callout plus the AC numbers that touch the seat boundary.
@@ -307,6 +308,7 @@ try {
     ['/js/ui-motion.js', 'IntersectionObserver'],
     ['/js/team-appointments.js', 'team-tree'],
     ['/team-appointments.json', '"zoneOrder"'],
+    ['/tracker-summary.json', '"vidhanSabha"'],
     ['/panchayat-summaries.json', '"threeTier"'],
     ['/up-kshetra.json', '"total"'],
     ['/pc-appointments.json', '"pcs"'],
@@ -359,8 +361,16 @@ try {
     kpis[1][0] === num(teamData.totals.contacted) && kpis[1][1] === 'संपर्क हुआ' &&
     kpis[2][0] === num(teamData.totals.verified) && kpis[2][1] === 'सत्यापित' &&
     kpis[3][0] === num(teamData.totals.dutyYes) && kpis[3][1] === 'दायित्व: हाँ' &&
-    kpis[4][0] === `${num(teamData.totals.acs)}/${num(teamData.totals.acsTarget)}` && kpis[4][1] === 'विधानसभा टीम');
+    kpis[4][0] === `${num(trackerSummary.vidhanSabha.appointed)}/${num(trackerSummary.vidhanSabha.target)}` && kpis[4][1] === 'विधानसभा टीम');
   check('team JSON has every appointment row', teamData.rows.length === teamData.totals.names && teamData.totals.names > 0);
+  check('all tracker-backed page numbers come from the workbook Summary sheet',
+    html.includes(`· ${num(trackerSummary.total.personsAppointed)} ज़मीनी टीम`) &&
+    html.includes(`<div class="big">${num(trackerSummary.total.personsAppointed)} <span class="big-sub">कुल ज़मीनी टीम`) &&
+    html.includes(`<td>${num(trackerSummary.vidhanSabha.personsAppointed)}</td>`) &&
+    html.includes(`${num(trackerSummary.zone.appointed)}</td>`) &&
+    html.includes(`${num(trackerSummary.cluster.target)}</td>`) &&
+    html.includes(`${num(trackerSummary.pravasi.target)}</td>`) &&
+    !['2,121', '2,015', '1,209', '398/403'].some((stale) => html.includes(stale)));
   check('team JSON covers all six zones and every Vidhan Sabha team',
     teamData.zoneOrder.length === 6 && teamData.totals.acs <= teamData.totals.acsTarget && teamData.totals.acsTarget === 403);
   check('team JSON carries forward hierarchy and cleans mobile numbers',
