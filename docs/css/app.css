@@ -3030,3 +3030,18 @@ body.map-hidden #map {
   visibility: hidden;
 }
 
+/* Keep upcoming cards fully masked until their GSAP initial state is set. */
+.gsap-pending .step:not(#hero) > .card {
+  visibility: hidden;
+}
+
+/* The hero animates on load and must not wait for the lazy card module. */
+.gsap-pending.hero-ready #hero .k,
+.gsap-pending.hero-ready #hero h1,
+.gsap-pending.hero-ready #hero h2,
+.gsap-pending.hero-ready #hero h3,
+.gsap-pending.hero-ready #hero .big,
+.gsap-pending.hero-ready #hero .hero-intro {
+  visibility: visible;
+}
+

@@ -188,17 +188,28 @@
   let started = false;
 
   function animateTree() {
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || !window.gsap) return;
+    if (!window.gsap) return;
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     const cards = tree.querySelectorAll(':scope > li > .team-node-card');
     if (cards.length) {
-      window.gsap.from(cards, {
-        opacity: 0,
-        y: 18,
-        duration: 0.6,
-        stagger: 0.07,
-        ease: 'power3.out',
-        clearProps: 'opacity,transform',
-      });
+      window.gsap.from(
+        cards,
+        reduced
+          ? {
+              opacity: 0,
+              duration: 0.3,
+              ease: 'none',
+              clearProps: 'opacity',
+            }
+          : {
+              opacity: 0,
+              y: 18,
+              duration: 0.6,
+              stagger: 0.07,
+              ease: 'power3.out',
+              clearProps: 'opacity,transform',
+            },
+      );
     }
   }
 

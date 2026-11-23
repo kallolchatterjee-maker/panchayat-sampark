@@ -6,7 +6,9 @@
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const hasGsap = typeof window.gsap !== 'undefined' && typeof window.ScrollTrigger !== 'undefined';
 
-  if (reduced || !hasGsap) {
+  // Without GSAP there is nothing to animate. With reduced motion we still
+  // run a short opacity-only fade so the reveal remains visible and gentle.
+  if (!hasGsap) {
     root.classList.remove('gsap-pending');
     return;
   }
@@ -20,42 +22,43 @@
 
   const TEXT = ['.k', 'h1', 'h2', 'h3', '.big', '.hero-intro'].join(',');
   const hero = document.getElementById('hero');
-  const hidden = {
-    opacity: 0,
-    yPercent: 38,
-    rotation: 1.4,
-    clipPath: 'inset(0% 0% 100% 0%)',
-    transformOrigin: '0% 100%',
-  };
+  const hidden = reduced
+    ? { opacity: 0 }
+    : {
+        opacity: 0,
+        yPercent: 38,
+        rotation: 1.4,
+        clipPath: 'inset(0% 0% 100% 0%)',
+        transformOrigin: '0% 100%',
+      };
+  const shown = reduced
+    ? { opacity: 1, duration: 0.35, ease: 'none' }
+    : {
+        opacity: 1,
+        yPercent: 0,
+        rotation: 0,
+        clipPath: 'inset(0% 0% 0% 0%)',
+        duration: 1.1,
+        stagger: 0.14,
+      };
 
   if (hero) {
     const card = hero.querySelector(':scope > .card') || hero.querySelector('.card');
     const text = [...new Set([...hero.querySelectorAll(TEXT)])];
     if (card) {
-      gsap.set(card, { opacity: 0, y: 18 });
+      gsap.set(card, reduced ? { opacity: 0 } : { opacity: 0, y: 18 });
       if (text.length) gsap.set(text, hidden);
-      const intro = gsap
-        .timeline({ defaults: { ease: 'expo.out' } })
-        .to(card, { opacity: 1, y: 0, duration: 0.8 });
-      if (text.length) {
-        intro.to(
-          text,
-          {
-            opacity: 1,
-            yPercent: 0,
-            rotation: 0,
-            clipPath: 'inset(0% 0% 0% 0%)',
-            duration: 1.1,
-            stagger: 0.14,
-          },
-          0.1,
-        );
-      }
+      const intro = gsap.timeline({ defaults: { ease: 'expo.out' } }).to(
+        card,
+        reduced ? { opacity: 1, duration: 0.35, ease: 'none' } : { opacity: 1, y: 0, duration: 0.8 },
+      );
+      if (text.length) intro.to(text, shown, reduced ? 0 : 0.1);
     }
   }
 
-  // Initial states are set, so it is safe to show the document now.
-  root.classList.remove('gsap-pending');
+  // The hero is ready, but keep later cards masked until their animation
+  // module has applied the initial states.
+  root.classList.add('hero-ready');
 
   let loaded = false;
   function loadCardMotion() {
@@ -64,8 +67,14 @@
     const moduleUrl = new URL('gsap-text.js', base);
     moduleUrl.search = base.search || '';
     import(moduleUrl.href)
-      .then(({ initCardTextMotion }) => initCardTextMotion())
-      .catch((error) => console.error('Card text animation failed to load:', error));
+      .then(({ initCardTextMotion }) => {
+        initCardTextMotion();
+        root.classList.remove('gsap-pending');
+      })
+      .catch((error) => {
+        console.error('Card text animation failed to load:', error);
+        root.classList.remove('gsap-pending');
+      });
   }
 
   const firstCard = document.querySelector('.step:not(#hero)');
@@ -78,6 +87,8 @@
     });
     // Deep links can start past the trigger; catch that case on boot.
     if (firstCard.getBoundingClientRect().top < window.innerHeight + 600) loadCardMotion();
+  } else {
+    root.classList.remove('gsap-pending');
   }
 
   const refresh = () => ScrollTrigger.refresh();
