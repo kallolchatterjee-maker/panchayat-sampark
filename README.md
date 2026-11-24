@@ -63,7 +63,7 @@ source **main / docs** (or deploy `docs/` with the official Pages action).
 - `lib/store.mjs` — loads `build/` once, caches AC detail, folds search queries.
 - `lib/viewmodel.mjs` — totals, histogram, top/bottom lists, and a compact
   `boot` payload (403 rows) for the map.
-- `views/` — hero, campaign-deck cards, real-data sections, drill-down, notes.
+- `views/` — hero, static cards, real-data sections, drill-down, notes.
 - `public/js/map.js` — D3 map: district/parliament/AC/subdistrict layers,
   booth-count choropleth, density choropleth, saturation index, 0.05° village
   grid, and per-AC village polygons with GP mesh, zoom and tooltips.
@@ -124,13 +124,12 @@ read at build/store load time — the browser receives a compact 80-row list.
   is by AC number, not by boundary.
 - **3 villages** with failed geometry and **5,439 blank village names** are
   counted but not drawn/labelled.
-- **Tracker and campaign-deck numbers** (8,67,616 elected representatives from
-  `Data/Tracker.xlsx`, 2,121 ground team, the November–January timeline) appear
-  on the cards; only the ground-team and timeline figures are static narrative.
-  The progress gauge is demo-only. The campaign choropleth uses real district link-coverage
-  for colour and the demo progress only for fill intensity; it does not claim
-  district-level demo reach. Every other number on the page is computed from
-  `Data/`.
+- **Tracker numbers** (8,67,616 elected representatives and 1,207 ground-team
+  members from `Data/Tracker.xlsx`) appear on the cards; the November–January
+  timeline is static narrative. The progress gauge is demo-only. The campaign
+  choropleth uses real district link-coverage for colour and the demo progress
+  only for fill intensity; it does not claim district-level demo reach. Every
+  other number on the page is computed from `Data/`.
 - The Panchayat tier explorer is based only on the Amethi workbook sample. It
   distinguishes source rows from distinct GP names (the GP sheet has repeated
   names) and must not be interpreted as totals for Uttar Pradesh.
