@@ -2828,6 +2828,20 @@ body.map-hidden #map {
 .team-l2 { border-top-color: var(--green); }
 .team-l3 { width: 380px; padding: 7px 10px; border-top-color: var(--mute); }
 
+/* The regional diaspora team is its own branch under Pradesh. */
+.team-pravasi {
+  border-top-color: var(--green);
+  box-shadow: inset 0 0 0 1px var(--green-soft);
+}
+
+.team-pravasi .team-node-label {
+  color: var(--green);
+}
+
+.team-pravasi .team-node-title {
+  font-size: 15px;
+}
+
 .team-people {
   display: flex;
   flex: 1 1 118px;

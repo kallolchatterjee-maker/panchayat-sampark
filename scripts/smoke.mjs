@@ -403,6 +403,17 @@ try {
     cardWidth > 0 && cardWidth <= 400 &&
     rootCardWidth > 0 && rootCardWidth <= 400 &&
     deepCardWidth > 0 && deepCardWidth <= 400);
+  check('Pravasi appointments form their own team under Pradesh',
+    teamData.rows.filter((row) => row.level === 'Pradesh').length === 1 &&
+    teamData.rows.some((row) => row.level === 'Pradesh' && /state gen sec/i.test(row.designation)) &&
+    teamData.rows.filter((row) => row.level === 'Pravasi').length > 0 &&
+    teamData.rows.filter((row) => row.level === 'Pravasi').every((row) =>
+      !row.zone && row.designation === 'क्षेत्रीय प्रवासी' && /appoint/i.test(row.status)) &&
+    teamScript.includes("const PRAVASI_TITLE = 'क्षेत्रीय प्रवासी';") &&
+    teamScript.includes("row.level === 'Pravasi'") &&
+    teamScript.includes('if (key === PRAVASI_TITLE) return -1;') &&
+    teamScript.includes("node.l === 'प्रवासी' ? ' team-pravasi' : ''") &&
+    /\.team-pravasi\s*\{[^}]*border-top-color:\s*var\(--green\)/.test(cssText));
   check('each team member shows verification and duty information',
     ['team-person-meta', 'सत्यापित', 'असत्यापित', 'सत्यापन: —', 'दायित्व: हाँ', 'दायित्व: नहीं', 'दायित्व: जानकारी नहीं दी', 'दायित्व: —'].every((token) => teamScript.includes(token)) &&
     !teamScript.includes('SARAL') &&

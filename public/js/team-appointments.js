@@ -1,6 +1,6 @@
 // Team Appointment showcase. The rows come from Data/Tracker.xlsx sheet 3,
 // materialised as public/team-appointments.json by scripts/build-team-data.py.
-// The shape mirrors the reference org tree: Pradesh → Zone → Zila → Vidhan Sabha.
+// The shape mirrors the reference org tree: Pradesh → (क्षेत्रीय प्रवासी, Zone) → Zila → Vidhan Sabha.
 (() => {
   const tree = document.getElementById('team-tree');
   if (!tree) return;
@@ -11,8 +11,9 @@
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
     })[ch]);
 
-  const LABELS = { प्रदेश: 'ज़ोन', ज़ोन: 'ज़िला', ज़िला: 'विधानसभा' };
+  const LABELS = { प्रदेश: 'टीम', ज़ोन: 'ज़िला', ज़िला: 'विधानसभा' };
   const LEVEL_TITLE = { Pradesh: 'प्रदेश', Zone: 'ज़ोन', Zila: 'ज़िला', 'Vidhan Sabha': 'विधानसभा' };
+  const PRAVASI_TITLE = 'क्षेत्रीय प्रवासी';
 
   function buildTree(rows, zoneOrder) {
     const root = { t: 'उत्तर प्रदेश', l: 'प्रदेश', k: new Map(), p: [] };
@@ -25,6 +26,8 @@
       let target = root;
       if (row.level === 'Zone') {
         target = node(root, row.zone, 'ज़ोन');
+      } else if (row.level === 'Pravasi') {
+        target = node(root, PRAVASI_TITLE, 'प्रवासी');
       } else if (row.level === 'Vidhan Sabha') {
         target = node(node(node(root, row.zone, 'ज़ोन'), row.zila, 'ज़िला'), row.ac, 'विधानसभा');
       } else if (row.level === 'Zila') {
@@ -33,9 +36,10 @@
       target.p.push(row);
     }
 
-    // Keep the tracker's zone order, then sort the rest alphabetically.
+    // Keep the tracker's zone order, with the प्रवासी team pinned on top.
     const order = zoneOrder.length ? zoneOrder : [...root.k.keys()];
     const rank = (key) => {
+      if (key === PRAVASI_TITLE) return -1;
       const at = order.indexOf(key);
       return at < 0 ? order.length : at;
     };
@@ -108,7 +112,7 @@
       ? `<span class="team-toggle" aria-hidden="true">${kids.length} ${LABELS[node.l] || ''}</span>`
       : '';
     const search = [node.t, ...node.p.map((person) => person.name)].join(' ').toLowerCase();
-    // Start at Pradesh → six zones; deeper levels open on demand.
+    // Start at Pradesh → क्षेत्रीय प्रवासी + six zones; deeper levels open on demand.
     const open = depth === 0 ? ' open' : '';
     const buttonAttrs = kids.length ? ' role="button" tabindex="0"' : '';
     const childList = kids.length
@@ -116,8 +120,9 @@
           .map((child) => nodeHtml(child, depth + 1, stats)).join('')}</ul>`
       : '';
 
+    const cardClass = `team-node-card team-l${depth}${node.l === 'प्रवासी' ? ' team-pravasi' : ''}`;
     return `<li class="team-node${open}" data-s="${esc(search)}">
-      <div class="team-node-card team-l${depth}"${buttonAttrs}>
+      <div class="${cardClass}"${buttonAttrs}>
         <div class="team-node-label">${esc(node.l)}</div>
         <div class="team-node-title">${esc(node.t)}</div>
         <div class="team-people">${node.p.map(personHtml).join('')}</div>
