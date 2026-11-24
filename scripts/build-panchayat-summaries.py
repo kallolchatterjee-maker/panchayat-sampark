@@ -41,16 +41,30 @@ MATCHING_FIELDS = [
     ("K", "karyakartaBoothFilled"),
 ]
 
-BJP_FIELDS = [
-    ("E", "taggedCalling"),
-    ("F", "taggedPhone"),
-    ("G", "taggedArea"),
-    ("H", "contested"),
-    ("I", "lottery"),
-    ("J", "uncontested"),
-    ("K", "vacant"),
-    ("L", "notMarked"),
-]
+# The tracker keeps inserting columns inside the "BJP Tagging" group, so fixed
+# letters go stale between revisions. Locate the fields by their row-3 headers.
+BJP_HEADERS = {
+    "taggedCalling": ("bjp tagged through calling",),
+    "taggedPhone": ("bjp tagged with only phone in master",),
+    "taggedArea": ("bjp tagged in master data(with area",),
+    "contested": ("सविरोध",),
+    "lottery": ("सविरोध(लॉटरी)",),
+    "uncontested": ("निर्विरोध",),
+    "vacant": ("पद रिक्त",),
+    "notMarked": ("अंकन नहीं",),
+}
+
+# Last known fixed layout, used only when a tracker copy lacks those headers.
+BJP_LEGACY_COLUMNS = {
+    "taggedCalling": "E",
+    "taggedPhone": "F",
+    "taggedArea": "G",
+    "contested": "H",
+    "lottery": "I",
+    "uncontested": "J",
+    "vacant": "K",
+    "notMarked": "L",
+}
 
 TIER_LABELS = {"ZP": "ज़िला पंचायत", "KP": "क्षेत्र पंचायत", "GP": "ग्राम पंचायत"}
 
@@ -188,6 +202,63 @@ def first_number(cells, *columns):
     return 0
 
 
+def shifted_column(column, offset):
+    """Return the spreadsheet column `offset` letters after `column`."""
+    index = 0
+    for char in column:
+        index = index * 26 + ord(char) - 64
+    index += offset
+    letters = ""
+    while index:
+        index, remainder = divmod(index - 1, 26)
+        letters = chr(65 + remainder) + letters
+    return letters
+
+
+def bjp_field_columns(rows):
+    """Resolve the BJP tagging fields from the sheet's own header labels."""
+    headers = {}
+    for row_number, cells in sorted(rows.items()):
+        if row_number > 5:
+            break
+        for column, value in cells.items():
+            headers.setdefault(column, []).append(value)
+
+    def find(aliases):
+        candidates = []
+        for column, values in headers.items():
+            for value in values:
+                candidates.append((column, re.sub(r"\s+", " ", value).strip().lower()))
+        for column, key in candidates:
+            if any(alias == key for alias in aliases):
+                return column
+        for column, key in candidates:
+            if any(alias in key for alias in aliases):
+                return column
+        return None
+
+    columns = {field: find(aliases) for field, aliases in BJP_HEADERS.items()}
+    if all(columns.values()):
+        print("BJP tagging fields from workbook headers:", columns)
+        return columns
+    return dict(BJP_LEGACY_COLUMNS)
+
+
+def bjp_overall_rows(rows):
+    """Map each mapping row to the column holding its 'Overall' label.
+
+    Booth counts always live in the two columns after 'Overall', which has
+    moved from N/O to Q/R to X/Y across tracker revisions.
+    """
+    found = {}
+    for row_number, cells in rows.items():
+        for column, value in cells.items():
+            if value == "Overall":
+                found[row_number] = column
+                break
+    return found
+
+
 def build_bjp(rows):
     ordered = sorted(rows)
     primary = []
@@ -206,21 +277,22 @@ def build_bjp(rows):
             continue
         primary.append((row_number, tier, designation, cells))
 
+    field_columns = bjp_field_columns(rows)
+    overall_rows = bjp_overall_rows(rows)
     entries = []
     for index, (row_number, tier, designation, cells) in enumerate(primary):
         next_primary = primary[index + 1][0] if index + 1 < len(primary) else max(ordered) + 1
-        # The "Overall" mapping row moved from column M to P in the updated
-        # workbook, with booth counts moving from N/O to Q/R. Keep the old
-        # columns as a fallback so older tracker copies still work.
-        overall = next(
+        overall_row = next(
             (
-                rows[candidate]
+                candidate
                 for candidate in range(row_number + 1, next_primary)
-                if rows.get(candidate, {}).get("P") == "Overall"
-                or rows.get(candidate, {}).get("M") == "Overall"
+                if candidate in overall_rows
             ),
-            {},
+            None,
         )
+        overall = rows.get(overall_row, {}) if overall_row is not None else {}
+        single_col = shifted_column(overall_rows[overall_row], 1) if overall_row is not None else "Q"
+        multiple_col = shifted_column(overall_rows[overall_row], 2) if overall_row is not None else "R"
         label = "अध्यक्ष" if designation == "Adhyaksh" else "वार्ड सदस्य"
         if tier == "GP" and designation == "Adhyaksh":
             label = "प्रधान"
@@ -230,10 +302,10 @@ def build_bjp(rows):
             "designation": label,
             "total": number(cells.get("C")),
         }
-        for column, field in BJP_FIELDS:
+        for field, column in field_columns.items():
             entry[field] = number(cells.get(column))
-        entry["singleBooth"] = first_number(overall, "Q", "N")
-        entry["multipleBooths"] = first_number(overall, "R", "O")
+        entry["singleBooth"] = first_number(overall, single_col, "Q", "N")
+        entry["multipleBooths"] = first_number(overall, multiple_col, "R", "O")
         entries.append(entry)
     return entries
 
