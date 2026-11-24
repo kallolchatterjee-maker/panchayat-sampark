@@ -398,20 +398,22 @@ try {
   const cardWidth = Number(cssText.match(/\.team-node-card\s*\{[^}]*width:\s*(\d+)px/)?.[1] ?? 0);
   const rootCardWidth = Number(cssText.match(/\.team-l0\s*\{\s*width:\s*(\d+)px/)?.[1] ?? 0);
   const deepCardWidth = Number(cssText.match(/\.team-l3\s*\{[^}]*width:\s*(\d+)px/)?.[1] ?? 0);
-  check('team tree starts at six zones with compact cards',
-    teamScript.includes("const open = depth === 0 ? ' open' : '';") &&
+  check('team tree starts at Pradesh with compact cards',
+    teamScript.includes("const open = depth === 0 || node.l === 'प्रवासी' ? ' open' : '';") &&
     cardWidth > 0 && cardWidth <= 400 &&
     rootCardWidth > 0 && rootCardWidth <= 400 &&
     deepCardWidth > 0 && deepCardWidth <= 400);
-  check('Pravasi appointments form their own team under Pradesh',
+  check('Pravasi card sits under Pradesh with zones nested below it',
     teamData.rows.filter((row) => row.level === 'Pradesh').length === 1 &&
     teamData.rows.some((row) => row.level === 'Pradesh' && /state gen sec/i.test(row.designation)) &&
     teamData.rows.filter((row) => row.level === 'Pravasi').length > 0 &&
     teamData.rows.filter((row) => row.level === 'Pravasi').every((row) =>
       !row.zone && row.designation === 'क्षेत्रीय प्रवासी' && /appoint/i.test(row.status)) &&
     teamScript.includes("const PRAVASI_TITLE = 'क्षेत्रीय प्रवासी';") &&
-    teamScript.includes("row.level === 'Pravasi'") &&
-    teamScript.includes('if (key === PRAVASI_TITLE) return -1;') &&
+    teamScript.includes("const pravasi = node(root, PRAVASI_TITLE, 'प्रवासी');") &&
+    teamScript.includes("node(pravasi, row.zone, 'ज़ोन')") &&
+    teamScript.includes("node(node(node(pravasi, row.zone, 'ज़ोन'), row.zila, 'ज़िला'), row.ac, 'विधानसभा')") &&
+    teamScript.includes("प्रवासी: 'ज़ोन'") &&
     teamScript.includes("node.l === 'प्रवासी' ? ' team-pravasi' : ''") &&
     /\.team-pravasi\s*\{[^}]*border-top-color:\s*var\(--green\)/.test(cssText));
   check('each team member shows verification and duty information',

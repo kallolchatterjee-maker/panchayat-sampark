@@ -1,6 +1,6 @@
 // Team Appointment showcase. The rows come from Data/Tracker.xlsx sheet 3,
 // materialised as public/team-appointments.json by scripts/build-team-data.py.
-// The shape mirrors the reference org tree: Pradesh → (क्षेत्रीय प्रवासी, Zone) → Zila → Vidhan Sabha.
+// The shape mirrors the reference org tree: Pradesh → क्षेत्रीय प्रवासी → Zone → Zila → Vidhan Sabha.
 (() => {
   const tree = document.getElementById('team-tree');
   if (!tree) return;
@@ -11,7 +11,7 @@
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
     })[ch]);
 
-  const LABELS = { प्रदेश: 'टीम', ज़ोन: 'ज़िला', ज़िला: 'विधानसभा' };
+  const LABELS = { प्रदेश: 'टीम', प्रवासी: 'ज़ोन', ज़ोन: 'ज़िला', ज़िला: 'विधानसभा' };
   const LEVEL_TITLE = { Pradesh: 'प्रदेश', Zone: 'ज़ोन', Zila: 'ज़िला', 'Vidhan Sabha': 'विधानसभा' };
   const PRAVASI_TITLE = 'क्षेत्रीय प्रवासी';
 
@@ -22,33 +22,40 @@
       return parent.k.get(key);
     };
 
+    // Every zone sits inside the क्षेत्रीय प्रवासी branch; only the Pradesh-level
+    // post stays on the root card above it.
+    const pravasi = node(root, PRAVASI_TITLE, 'प्रवासी');
     for (const row of rows) {
       let target = root;
       if (row.level === 'Zone') {
-        target = node(root, row.zone, 'ज़ोन');
+        target = node(pravasi, row.zone, 'ज़ोन');
       } else if (row.level === 'Pravasi') {
-        target = node(root, PRAVASI_TITLE, 'प्रवासी');
+        target = pravasi;
       } else if (row.level === 'Vidhan Sabha') {
-        target = node(node(node(root, row.zone, 'ज़ोन'), row.zila, 'ज़िला'), row.ac, 'विधानसभा');
+        target = node(node(node(pravasi, row.zone, 'ज़ोन'), row.zila, 'ज़िला'), row.ac, 'विधानसभा');
       } else if (row.level === 'Zila') {
-        target = node(node(root, row.zone, 'ज़ोन'), row.zila, 'ज़िला');
+        target = node(node(pravasi, row.zone, 'ज़ोन'), row.zila, 'ज़िला');
       }
       target.p.push(row);
     }
 
     // Keep the tracker's zone order, with the प्रवासी team pinned on top.
-    const order = zoneOrder.length ? zoneOrder : [...root.k.keys()];
+    const order = zoneOrder.length ? zoneOrder : [...pravasi.k.keys()];
     const rank = (key) => {
       if (key === PRAVASI_TITLE) return -1;
       const at = order.indexOf(key);
       return at < 0 ? order.length : at;
     };
-    for (const children of [root.k, ...[...root.k.values()].map((zone) => zone.k)]) {
-      const entries = [...children.entries()];
+    const sortTree = (parent) => {
+      const entries = [...parent.k.entries()];
       entries.sort((a, b) => rank(a[0]) - rank(b[0]) || a[0].localeCompare(b[0], 'hi'));
-      children.clear();
-      for (const [key, value] of entries) children.set(key, value);
-    }
+      parent.k.clear();
+      for (const [key, value] of entries) {
+        parent.k.set(key, value);
+        sortTree(value);
+      }
+    };
+    sortTree(root);
     return root;
   }
 
@@ -112,8 +119,8 @@
       ? `<span class="team-toggle" aria-hidden="true">${kids.length} ${LABELS[node.l] || ''}</span>`
       : '';
     const search = [node.t, ...node.p.map((person) => person.name)].join(' ').toLowerCase();
-    // Start at Pradesh → क्षेत्रीय प्रवासी + six zones; deeper levels open on demand.
-    const open = depth === 0 ? ' open' : '';
+    // Show Pradesh → क्षेत्रीय प्रवासी → six zones on load; deeper levels open on demand.
+    const open = depth === 0 || node.l === 'प्रवासी' ? ' open' : '';
     const buttonAttrs = kids.length ? ' role="button" tabindex="0"' : '';
     const childList = kids.length
       ? `<ul class="team-children${kids.length === 1 ? ' team-children-single' : ''}">${kids
