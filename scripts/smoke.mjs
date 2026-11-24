@@ -459,11 +459,15 @@ try {
     zoneData.features.length === 6 && zoneData.total === teamData.totals.appointed &&
     ['पश्चिम', 'ब्रज', 'अवध', 'कानपुर', 'गोरखपुर', 'काशी'].every((name) =>
       zoneData.features.some((f) => f.properties.name === name)));
-  // The one appointment not attributed to a zone is the Pradesh-level post.
+  // Appointments without a zone (the Pradesh post plus any Pravasi rows that
+  // are not zone-tagged) are not drawn on the six-zone map.
+  const unzonedAppointments = teamData.rows.filter(
+    (row) => /appoint/i.test(row.status || '') && !row.zone,
+  ).length;
   check('zone appointment shares add up to the full team',
-    teamData.rows.filter((row) => row.level === 'Pradesh').length === 1 &&
+    unzonedAppointments >= 1 &&
     zoneData.features.reduce((sum, f) => sum + f.properties.appointed, 0) ===
-      teamData.totals.appointed - 1 &&
+      teamData.totals.appointed - unzonedAppointments &&
     zoneData.features.every((f) => f.properties.share > 0 && f.properties.share < 100 && f.geometry));
   check('zone geometry and labels are wired into svg#svg',
     html.includes('id="gz"') && mapSource.includes("select('#gz')") &&
