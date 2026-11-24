@@ -2730,7 +2730,7 @@ body.map-hidden #map {
 .team-wrap {
   display: inline-block;
   min-width: 100%;
-  text-align: center;
+  text-align: left;
 }
 
 .team-tree,
@@ -2742,9 +2742,11 @@ body.map-hidden #map {
 
 .team-tree ul {
   display: none;
+  flex-direction: column;
   justify-content: center;
-  padding-top: 24px;
   position: relative;
+  margin-left: 26px;
+  padding-left: 26px;
 }
 
 .team-tree li.open > ul {
@@ -2753,93 +2755,57 @@ body.map-hidden #map {
 
 .team-tree li {
   position: relative;
-  padding: 24px 4px 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  vertical-align: top;
+  padding: 5px 0;
 }
 
 .team-tree > li {
-  padding-top: 0;
+  padding: 0;
 }
 
-.team-tree li::before,
-.team-tree li::after {
+/* Short horizontal stub from the parent spine into each child card. */
+.team-tree li::before {
   content: '';
   position: absolute;
-  top: 0;
-  right: 50%;
-  width: 50%;
-  height: 24px;
+  left: -26px;
+  top: 50%;
+  width: 26px;
   border-top: 2px solid var(--line-ui);
 }
 
-.team-tree li::after {
-  right: auto;
-  left: 50%;
-  border-left: 2px solid var(--line-ui);
-}
-
-.team-tree li:first-child::before,
-.team-tree li:last-child::after {
-  border: 0;
-}
-
-.team-tree li:last-child::before {
-  border-right: 2px solid var(--line-ui);
-  border-radius: 0 8px 0 0;
-}
-
-.team-tree li:first-child::after {
-  border-radius: 8px 0 0 0;
-}
-
-.team-tree li:only-child::before {
-  display: none;
-}
-
-.team-tree li:only-child::after {
-  border-radius: 0;
-  border-top: 0;
-}
-
-.team-tree > li::before,
-.team-tree > li::after {
-  display: none;
-}
-
+/* Vertical spine joining siblings, and the stub from the parent card. */
 .team-tree ul::before {
   content: '';
   position: absolute;
+  left: 0;
   top: 0;
-  left: 50%;
-  height: 24px;
+  bottom: 0;
   border-left: 2px solid var(--line-ui);
 }
 
-.team-children-vert {
-  flex-direction: column;
-  align-items: center;
+.team-tree ul::after {
+  content: '';
+  position: absolute;
+  left: -26px;
+  top: 50%;
+  width: 26px;
+  border-top: 2px solid var(--line-ui);
 }
 
-.team-children-vert > li {
-  padding: 18px 0 0;
-}
-
-.team-children-vert > li::before {
-  left: 50%;
-  right: auto;
-  top: 0;
-  width: 0;
-  height: 18px;
-  border: 0;
-  border-left: 2px solid var(--line-ui);
-  border-radius: 0;
-}
-
-.team-children-vert > li::after {
+.team-tree > li::before {
   display: none;
+}
+
+/* One child gets a single straight connector instead of a spine. */
+.team-children-single::before,
+.team-children-single > li::before {
+  display: none;
+}
+
+.team-children-single::after {
+  width: 52px;
 }
 
 .team-node-card {
@@ -2847,27 +2813,26 @@ body.map-hidden #map {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 10px;
-  width: 560px;
-  min-height: 68px;
+  gap: 8px;
+  width: 340px;
+  min-height: 82px;
   background: var(--cream);
   color: var(--ink);
-  padding: 8px 12px;
+  padding: 8px 10px 7px;
   text-align: left;
   border-top: 4px solid var(--or-ink);
 }
 
-.team-l0 { width: 600px; }
+.team-l0 { width: 360px; }
 .team-l1 { border-top-color: #8a3c0d; }
 .team-l2 { border-top-color: var(--green); }
-.team-l3 { width: 760px; padding: 7px 12px; border-top-color: var(--mute); }
+.team-l3 { width: 380px; padding: 7px 10px; border-top-color: var(--mute); }
 
 .team-people {
   display: flex;
-  flex: 1 1 auto;
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
+  flex: 1 1 118px;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
 }
 
@@ -2885,8 +2850,7 @@ body.map-hidden #map {
 }
 
 .team-node-label {
-  flex: 0 0 46px;
-  align-self: center;
+  flex: 0 0 50px;
   font-size: 10px;
   font-weight: 800;
   color: var(--or-ink);
@@ -2898,29 +2862,23 @@ body.map-hidden #map {
 }
 
 .team-node-title {
-  flex: 0 0 150px;
-  align-self: center;
-  font: 700 15px/1.15 Poppins, sans-serif;
+  flex: 1 1 120px;
+  font: 700 16px/1.1 Poppins, sans-serif;
   margin: 0;
 }
 
-.team-l0 .team-node-title { flex-basis: 170px; font-size: 20px; }
-.team-l3 .team-node-title { flex-basis: 140px; font-size: 14px; }
+.team-l0 .team-node-title { font-size: 20px; }
+.team-l3 .team-node-title { font-size: 14px; }
 
 .team-person {
-  flex: 1 1 0;
-  min-width: 0;
   font-size: 11px;
-  padding: 0 0 0 10px;
+  padding: 2px 0 2px 7px;
   border-left: 1px solid rgba(0, 0, 0, 0.12);
   font-weight: 600;
 }
 
 .team-person-name {
   line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .team-person small {
@@ -2933,17 +2891,13 @@ body.map-hidden #map {
 
 .team-person-meta {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 4px;
-  margin-top: 4px;
-  min-width: 0;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 3px;
 }
 
 .team-badge {
   display: inline-block;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-size: 9px;
   line-height: 1.5;
   font-weight: 800;
@@ -2977,10 +2931,9 @@ body.map-hidden #map {
 .team-node-foot {
   display: flex;
   flex: 0 0 auto;
-  flex-direction: row;
-  gap: 6px;
-  align-items: center;
-  align-self: center;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-end;
   margin-top: 0;
 }
 

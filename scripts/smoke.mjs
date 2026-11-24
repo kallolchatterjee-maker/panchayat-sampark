@@ -387,19 +387,22 @@ try {
   check('team tree is wired for search and expand/collapse',
     ['team-search', 'team-expand', 'team-collapse', 'team-tree'].every((id) => html.includes(`id="${id}"`)) &&
     ['team-node', 'team-hit', 'const teamDataUrl', 'fetch(teamDataUrl)'].every((token) => teamScript.includes(token)));
-  check('team cards use a horizontal row layout',
+  check('team cards stay compact in a left-to-right org chart',
     /\.team-node-card\s*\{[^}]*flex-direction:\s*row/.test(cssText) &&
-    /\.team-people\s*\{[^}]*flex-direction:\s*row/.test(cssText) &&
-    /\.team-node-foot\s*\{[^}]*flex-direction:\s*row/.test(cssText) &&
-    teamScript.includes('<div class="team-people">'));
+    /\.team-people\s*\{[^}]*flex-direction:\s*column/.test(cssText) &&
+    /\.team-node-foot\s*\{[^}]*flex-direction:\s*column/.test(cssText) &&
+    /\.team-tree\s+li\s*\{[^}]*flex-direction:\s*row/.test(cssText) &&
+    /\.team-tree\s+ul\s*\{[^}]*flex-direction:\s*column/.test(cssText) &&
+    teamScript.includes('<div class="team-people">') &&
+    teamScript.includes('team-children-single'));
   const cardWidth = Number(cssText.match(/\.team-node-card\s*\{[^}]*width:\s*(\d+)px/)?.[1] ?? 0);
   const rootCardWidth = Number(cssText.match(/\.team-l0\s*\{\s*width:\s*(\d+)px/)?.[1] ?? 0);
   const deepCardWidth = Number(cssText.match(/\.team-l3\s*\{[^}]*width:\s*(\d+)px/)?.[1] ?? 0);
-  check('team tree starts at six zones with wide horizontal cards',
+  check('team tree starts at six zones with compact cards',
     teamScript.includes("const open = depth === 0 ? ' open' : '';") &&
-    cardWidth > 400 && cardWidth <= 800 &&
-    rootCardWidth > 400 && rootCardWidth <= 800 &&
-    deepCardWidth > 600 && deepCardWidth <= 800);
+    cardWidth > 0 && cardWidth <= 400 &&
+    rootCardWidth > 0 && rootCardWidth <= 400 &&
+    deepCardWidth > 0 && deepCardWidth <= 400);
   check('each team member shows verification and duty information',
     ['team-person-meta', 'सत्यापित', 'असत्यापित', 'सत्यापन: —', 'दायित्व: हाँ', 'दायित्व: नहीं', 'दायित्व: जानकारी नहीं दी', 'दायित्व: —'].every((token) => teamScript.includes(token)) &&
     !teamScript.includes('SARAL') &&

@@ -112,7 +112,7 @@
     const open = depth === 0 ? ' open' : '';
     const buttonAttrs = kids.length ? ' role="button" tabindex="0"' : '';
     const childList = kids.length
-      ? `<ul class="team-children${node.l === 'ज़िला' ? ' team-children-vert' : ''}">${kids
+      ? `<ul class="team-children${kids.length === 1 ? ' team-children-single' : ''}">${kids
           .map((child) => nodeHtml(child, depth + 1, stats)).join('')}</ul>`
       : '';
 
