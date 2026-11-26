@@ -124,7 +124,7 @@ read at build/store load time — the browser receives a compact 80-row list.
   is by AC number, not by boundary.
 - **3 villages** with failed geometry and **5,439 blank village names** are
   counted but not drawn/labelled.
-- **Tracker numbers** (8,67,616 elected representatives and 1,213 ground-team
+- **Tracker numbers** (8,67,616 elected representatives and 1,232 ground-team
   members from `Data/Tracker.xlsx`) appear on the cards; the November–January
   timeline is static narrative. The progress gauge is demo-only. The campaign
   choropleth uses real district link-coverage for colour and the demo progress
