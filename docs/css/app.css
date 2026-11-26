@@ -2780,8 +2780,10 @@ body.map-hidden #map {
   content: '';
   position: absolute;
   left: 0;
-  top: 0;
-  bottom: 0;
+  /* Clip the vertical spine so it only runs between the first and last child
+     centres instead of extending past them into the list padding. */
+  top: 46px;
+  bottom: 46px;
   border-left: 2px solid var(--line-ui);
 }
 
