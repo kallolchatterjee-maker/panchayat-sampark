@@ -683,7 +683,7 @@ function renderScatter() {
 
   const d3 = window.d3;
   const width = Math.max(280, host.clientWidth || 400);
-  const height = 190;
+  const height = 260;
   const margin = { top: 10, right: 8, bottom: 24, left: 30 };
 
   host.innerHTML = '';
