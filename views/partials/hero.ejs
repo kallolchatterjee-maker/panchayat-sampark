@@ -16,8 +16,12 @@
       <div class="tile"><b><%= num(vm.meta.totals.subdistricts) %></b><span>तहसील</span></div>
     </div>
 
+    <%
+      const elected = vm.overview && vm.overview.elected ? vm.overview.elected : {};
+      const totalReps = elected.total || vm.tierTotals.reps;
+    %>
     <p class="sm">
-      <%= num(vm.tierTotals.reps) %> निर्वाचित प्रतिनिधि · <%= num(vm.trackerSummary.total.personsAppointed) %> ज़मीनी टीम
+      <%= num(totalReps) %> निर्वाचित प्रतिनिधि · <%= num(elected.rural || vm.tierTotals.reps) %> ग्रामीण + <%= num(elected.urban || 0) %> शहरी · <%= num(vm.trackerSummary.total.personsAppointed) %> ज़मीनी टीम
     </p>
   </div>
 </section>

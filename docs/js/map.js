@@ -63,6 +63,14 @@ export function createMap({ boot }) {
   }
   const districtAggOf = (feature) =>
     districtAgg.get(districtKeyOf(feature.properties.dtname));
+  // Tracker district rows: [name, wards, wardMembers, pradhans, gpHeadPhones,
+  // gpMemberPhones, zone]. They are joined to the same polygon key as the
+  // dataset aggregates so the panchayat layer can show workbook figures.
+  const trackerDistricts = new Map(
+    (boot.trackerDistricts || []).map((row) => [districtKeyOf(row[0]), row]),
+  );
+  const trackerOf = (name) => trackerDistricts.get(districtKeyOf(name));
+  const overview = boot.overview || {};
   const pcAgg = new Map((boot.pc || []).map((p) => [p[0], p]));
 
   // Three-tier definition comes from the view model, so the card chart and this
@@ -169,9 +177,13 @@ export function createMap({ boot }) {
     const blocks = agg?.[6]
       ? `${fmt(agg[6])} ब्लॉक`
       : 'ब्लॉक-गणना नहीं';
+    const tracker = trackerOf(agg?.[0] ?? name);
+    const trackerLine = tracker
+      ? `\nट्रैकर: ${fmt(tracker[1])} वार्ड · ${fmt(tracker[3])} प्रधान · ${fmt(tracker[5] || 0)} GP सदस्य मोबाइल`
+      : '';
     return (
       `${name} · ${fmt(value)} ${tier?.districtMetric ?? ''} · ${tier?.metricLabel ?? ''}\n` +
-      `${fmt(agg?.[2] ?? 0)} गाँव · ${blocks} · ${fmt(agg?.[5] ?? 0)} GP\n` +
+      `${fmt(agg?.[2] ?? 0)} गाँव · ${blocks} · ${fmt(agg?.[5] ?? 0)} GP${trackerLine}\n` +
       `क्लिक: ज़िला चुनें`
     );
   }
@@ -740,9 +752,12 @@ export function createMap({ boot }) {
     } else if (mode === 'panchayat') {
       const tier = tierById.get(state.tier);
       const agg = state.district ? districtAgg.get(state.district) : null;
+      const rural = (overview.elected || {}).rural || 0;
+      const tracker = agg ? trackerOf(agg[0]) : null;
       statEl.innerHTML = agg
-        ? `<b>${escHtml(agg[0])}</b> · ${fmt(agg[tier.metricIndex] || 0)} ${tier.districtMetric} · ${tier.label}`
-        : `<b>${fmt(totals.districts)}</b> ज़िले · स्तर: ${tier.label} · ${tier.metricLabel} · ज़िला चुनने पर क्लिक करें`;
+        ? `<b>${escHtml(agg[0])}</b> · ${fmt(agg[tier.metricIndex] || 0)} ${tier.districtMetric} · ${tier.label}` +
+          (tracker ? ` · ${fmt(tracker[1])} वार्ड (ट्रैकर)` : '')
+        : `<b>${fmt(rural || totals.districts)}</b> ग्रामीण निर्वाचित पद · स्तर: ${tier.label} · ${tier.metricLabel} · ज़िला चुनने पर क्लिक करें`;
     } else if (mode === 'pc') {
       const row = state.pc ? pcAgg.get(state.pc) : null;
       statEl.innerHTML = row
@@ -968,20 +983,30 @@ export function createMap({ boot }) {
     const agg = state.district ? districtAgg.get(state.district) : null;
     if (!agg) {
       const rows = boot.districts || [];
-      const gps = rows.reduce((sum, row) => sum + (row[5] || 0), 0);
-      const blocks = rows.reduce((sum, row) => sum + (row[6] || 0), 0);
+      const elected = overview.elected || {};
+      const totalWards = (boot.trackerDistricts || []).reduce(
+        (sum, row) => sum + (row[1] || 0),
+        0,
+      );
       host.innerHTML =
-        `<b>${fmt(rows.length)} ज़िले</b> · ${fmt(blocks)} ब्लॉक (डेटा में) · ${fmt(gps)} GP (डेटा में)` +
-        '<br><small>किसी ज़िले पर क्लिक करें या पट्टी चुनें।</small>';
+        `<b>${fmt(elected.total || rows.length)}</b> कुल निर्वाचित पद · ` +
+        `<b>${fmt(totalWards)}</b> वार्ड (ट्रैकर)` +
+        `<br><small>${fmt(rows.length)} ज़िले · किसी ज़िले पर क्लिक करें या पट्टी चुनें।</small>`;
       return;
     }
     const value = agg[tier.metricIndex] || 0;
     const blocks = agg[6]
       ? `${fmt(agg[6])} ब्लॉक`
       : 'ब्लॉक-गणना नहीं';
+    const tracker = trackerOf(agg[0]);
+    const trackerLine = tracker
+      ? `<br><small>ट्रैकर: ${fmt(tracker[1])} वार्ड · ${fmt(tracker[2])} वार्ड सदस्य · ` +
+        `${fmt(tracker[4] || 0)} प्रधान मोबाइल · ${fmt(tracker[5] || 0)} GP सदस्य मोबाइल</small>`
+      : '';
     host.innerHTML =
       `<b>${escHtml(agg[0])}</b> · <span class="pr-value">${fmt(value)} ${tier.districtMetric}</span>` +
-      `<br><small>${fmt(agg[2] || 0)} गाँव · ${blocks} · ${fmt(agg[5] || 0)} GP</small>`;
+      `<br><small>${fmt(agg[2] || 0)} गाँव · ${blocks} · ${fmt(agg[5] || 0)} GP</small>` +
+      trackerLine;
   }
 
   // Keep the parliament outlines and the ACs they contain in sync with the

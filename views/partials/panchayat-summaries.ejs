@@ -3,11 +3,70 @@
   const matching = summaries.dataMatching || [];
   const totals = summaries.dataMatchingTotals || {};
   const bjp = summaries.bjp || [];
+  const overview = vm.overview || {};
+  const elected = overview.elected || {};
+  const ac = overview.ac || {};
+  const org = overview.organisation || {};
+  const vistarak = overview.vistarak || {};
+  const rlbPosts = overview.rlbPosts || [];
+  const ulbPosts = overview.ulbPosts || [];
 %>
 <section class="step step-summaries" data-m="panchayat-summaries" data-map-hidden id="panchayat-summaries">
   <div class="card summaries-card">
     <p class="k"><span lang="en">PANCHAYAT SUMMARIES</span> · पंचायत सारांश</p>
     <h2>पंचायत <span class="or">आँकड़े</span></h2>
+
+    <h3 class="summary-title">अभियान एक नज़र में</h3>
+    <div class="summary-kpis" role="group" aria-label="अभियान की मुख्य संख्याएँ">
+      <div class="summary-kpi"><b><%= num(elected.total) %></b><span>कुल निर्वाचित प्रतिनिधि</span></div>
+      <div class="summary-kpi"><b><%= num(elected.rural) %></b><span>ग्रामीण · त्रीस्तरीय</span></div>
+      <div class="summary-kpi"><b><%= num(elected.urban) %></b><span>शहरी निकाय</span></div>
+      <div class="summary-kpi"><b><%= num(vistarak.target) %></b><span>प्रवासी विस्तारक</span></div>
+    </div>
+
+    <div class="summary-scroll">
+      <table class="summary-table">
+        <thead>
+          <tr><th scope="col">संकेतक</th><th scope="col">संख्या / विवरण</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">विधानसभा · पूर्ण ग्रामीण / आंशिक शहरी / पूर्ण शहरी</th><td><%= num(ac.fullyRural) %> / <%= num(ac.partlyUrban) %> / <%= num(ac.fullyUrban) %></td></tr>
+          <tr><th scope="row">क्षेत्र / ज़िले (संगठनात्मक)</th><td><%= num(org.zones) %> / <%= num(org.zilas) %></td></tr>
+          <tr><th scope="row">विस्तारक · क्लस्टर + लोकसभा</th><td><%= num(vistarak.target) %> (<%= num(vistarak.cluster) %> + <%= num(vistarak.pravasi) %>)</td></tr>
+          <tr><th scope="row">विस्तारकों के राज्य</th><td><%= vistarak.states %></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="summary-title">निर्वाचित पद और मोबाइल उपलब्धता</h3>
+    <div class="summary-scroll">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th scope="col">निकाय</th><th scope="col">पद</th><th scope="col">कुल पद</th>
+            <th scope="col">डेटा</th><th scope="col">मोबाइल</th><th scope="col">कवरेज</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rlbPosts.forEach((post) => { %>
+          <tr>
+            <th scope="row">ग्रामीण · <%= post.body %></th>
+            <td><%= post.label %></td><td><%= num(post.total) %></td>
+            <td><%= num(post.dataCount) %></td><td><%= num(post.mobile) %></td>
+            <td><%= post.mobilePct %>%</td>
+          </tr>
+          <% }) %>
+          <% ulbPosts.forEach((post) => { %>
+          <tr>
+            <th scope="row">शहरी · <%= post.body %></th>
+            <td><%= post.label %></td><td><%= num(post.total) %></td>
+            <td><%= num(post.dataCount) %></td><td><%= num(post.mobile) %></td>
+            <td><%= post.mobilePct %>%</td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
 
     <h3 class="summary-title">डेटा मिलान</h3>
     <div class="summary-kpis" role="group" aria-label="डेटा मिलान की मुख्य संख्याएँ">

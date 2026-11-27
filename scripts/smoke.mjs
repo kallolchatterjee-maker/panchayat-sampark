@@ -430,17 +430,23 @@ try {
 
   // Panchayat summaries (Data/Tracker.xlsx summary sheets, materialised as JSON).
   const tierIds = ['zila', 'kshetra', 'gram'];
+  // Data Summary is the headline cut; the Zila-wise sheet still supplies the
+  // contest/phone detail. The page must show the merged, authoritative values.
+  const officialTiers = summaryData.overview?.threeTier || {};
+  const tierTotals = tierIds.map((id) => ({ ...summaryData.threeTier[id], ...(officialTiers[id] || {}) }));
   const tierLabels = tierIds.map((id) =>
     html.match(new RegExp(`data-tier="${id}"[\\s\\S]{0,200}?aria-label="([^"]+)"`))?.[1] || '');
   check('three-tier card uses the tracker totals',
     tierLabels.every((label, index) => {
-      const values = summaryData.threeTier[tierIds[index]];
+      const values = tierTotals[index];
       return [values.units, values.head, values.members].every((value) => label.includes(num(value)));
     }));
-  const reps = Object.values(summaryData.threeTier)
-    .reduce((sum, tier) => sum + tier.head + tier.members, 0);
-  check('hero total matches the refreshed three-tier card',
-    html.includes(`${num(reps)} निर्वाचित प्रतिनिधि`) &&
+  const reps = tierTotals.reduce((sum, tier) => sum + tier.head + tier.members, 0);
+  // The hero shows the statewide elected total (rural + urban); the three-tier
+  // card below it shows the rural subset. Both come from the tracker.
+  const electedTotal = summaryData.overview?.elected?.total || reps;
+  check('hero total matches the tracker elected total',
+    html.includes(`${num(electedTotal)} निर्वाचित प्रतिनिधि`) &&
     html.includes(`कुल <b>${num(reps)}</b> निर्वाचित पद`));
   check('panchayat summaries follow the team showcase',
     html.indexOf('id="team"') < html.indexOf('id="panchayat-summaries"') &&
@@ -450,7 +456,12 @@ try {
     html.includes('class="summary-kpis"') && html.includes('class="summary-table') &&
     html.includes('डेटा मिलान') && html.includes('BJP टैगिंग और परिणाम') &&
     summaryData.dataMatching.length === 4 && summaryData.bjp.length === 6);
-  const summaryKpis = [...html.matchAll(/<div class="summary-kpi"><b>([^<]+)<\/b><span>([^<]+)<\/span><\/div>/g)]
+  // The at-a-glance KPI group precedes the data-matching group; scope the
+  // assertion to the latter so both tracker sections can coexist.
+  const matchingStart = html.indexOf('aria-label="डेटा मिलान की मुख्य संख्याएँ"');
+  const matchingEnd = html.indexOf('<div class="summary-scroll">', matchingStart);
+  const matchingKpiHtml = html.slice(matchingStart, matchingEnd);
+  const summaryKpis = [...matchingKpiHtml.matchAll(/<div class="summary-kpi"><b>([^<]+)<\/b><span>([^<]+)<\/span><\/div>/g)]
     .map((match) => [match[1], match[2]]);
   check('data matching KPIs come from the tracker',
     summaryKpis.length === 4 &&

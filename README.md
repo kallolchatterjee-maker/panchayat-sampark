@@ -87,12 +87,14 @@ on member click. Its controls live in `views/partials/network.ejs`; the SVG and
 influence panel live in `views/partials/map.ejs`.
 
 The three-tier panchayat card replaces the static post table with a log-scaled
-bar chart of all six elected posts plus a share bar for the 8,67,616 total. The
-same `vm.tiers` definition drives a map overlay: picking a tier recolors the
-75 district polygons by that tier's district-level metric (villages → blocks →
-GPs) and resizes one bubble per district. The chart appears both in the card
-and on the map; clicking either copy, or a district polygon/bubble, keeps the
-two in sync and echoes the selected district's numbers back into the card.
+bar chart of all six elected posts plus a share bar for the 8,76,980 rural total
+from the tracker's `Data Summary` sheet. The same `vm.tiers` definition drives a
+map overlay: picking a tier recolors the 75 district polygons by that tier's
+district-level metric (villages → blocks → GPs) and resizes one bubble per
+district. The chart appears both in the card and on the map; clicking either
+copy, or a district polygon/bubble, keeps the two in sync and echoes the
+selected district's numbers back into the card. The map readout also shows the
+tracker's district-level ward, pradhan and mobile-availability figures.
 
 The assembly comparison card is district-aware. It defaults to Amethi for
 no-JS rendering, but the district selector in the preceding three-tier card —
@@ -124,21 +126,23 @@ read at build/store load time — the browser receives a compact 80-row list.
   is by AC number, not by boundary.
 - **3 villages** with failed geometry and **5,439 blank village names** are
   counted but not drawn/labelled.
-- **Tracker numbers** (8,67,616 elected representatives and 1,232 ground-team
-  members from `Data/Tracker.xlsx`) appear on the cards; the November–January
-  timeline is static narrative. The progress gauge is demo-only. The campaign
-  choropleth uses real district link-coverage for colour and the demo progress
-  only for fill intensity; it does not claim district-level demo reach. Every
-  other number on the page is computed from `Data/`.
+- **Tracker numbers** (8,91,658 elected representatives — 8,76,980 rural and
+  14,678 urban — plus 1,232 ground-team members from `Data/Tracker.xlsx`) appear
+  on the cards; the November–January timeline is static narrative. The progress
+  gauge is demo-only. The campaign choropleth uses real district link-coverage
+  for colour and the demo progress only for fill intensity; it does not claim
+  district-level demo reach. Every other number on the page is computed from
+  `Data/`.
 - The Panchayat tier explorer is based only on the Amethi workbook sample. It
   distinguishes source rows from distinct GP names (the GP sheet has repeated
   names) and must not be interpreted as totals for Uttar Pradesh.
 - The three-tier map uses `build/districts.json`. Block counts are missing for
   Mahrajganj, Sant Kabir Nagar and Shrawasti; those districts are left dark in
-  the क्षेत्र पंचायत view and labelled "ब्लॉक-गणना नहीं" in tooltips. The 75 / 825 /
-  58,167 unit counts in the chart come from the tracker's Zila-wise Panchayat
-  Summary; the map's statewide GP and block sums are the dataset counts and are
-  labelled as such.
+  the क्षेत्र पंचायत view and labelled "ब्लॉक-गणना नहीं" in tooltips. The 75 / 826 /
+  57,694 unit counts in the chart come from the tracker's `Data Summary` sheet;
+  the map's statewide GP and block sums are the dataset counts and are labelled
+  as such, while the district tooltip/readout separately shows the tracker's
+  ward and pradhan counts.
 
 ## Booth Saturation Index
 

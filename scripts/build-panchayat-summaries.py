@@ -131,6 +131,7 @@ def load_sheets():
         for sheet in workbook.find("m:sheets", NS):
             name = sheet.attrib.get("name")
             if name not in {
+                "Data Summary",
                 "Data Matching Summary",
                 "Zila_wise_Panchayat_Summary",
                 "Panchayat - Data Summary",
@@ -191,6 +192,183 @@ def build_three_tier(rows):
             "memberPhones": number(total.get("Z")),
         },
     }
+
+
+def labelled_row(rows, needle):
+    """Find a sheet row by a fragment of its label in column A."""
+    return next((cells for cells in rows.values() if needle in cells.get("A", "")), {})
+
+
+def labelled_start(rows, prefix):
+    """Find a sheet row whose column A starts with an exact label prefix."""
+    return next((cells for cells in rows.values() if cells.get("A", "").startswith(prefix)), {})
+
+
+def find_row_with(rows, needle):
+    """Find a row by a fragment anywhere; Data Summary labels live in column C."""
+    return next((cells for cells in rows.values() if needle in " ".join(cells.values())), {})
+
+
+def split_numbers(value):
+    return [int(part) for part in re.findall(r"\d+", str(value or ""))]
+
+
+def mobile_pct(value):
+    """The workbook caches Excel ratios such as 0.859 as text."""
+    if not value or value in {"-", "—", "NaN"}:
+        return 0.0
+    try:
+        return round(float(value) * 100, 1)
+    except ValueError:
+        return 0.0
+
+
+def post_kind(label):
+    return "head" if any(word in label for word in ("अध्यक्ष", "प्रमुख", "प्रधान")) else "member"
+
+
+def post_tier(body):
+    if "ज़िला" in body or "जिला" in body:
+        return "zila"
+    if "क्षेत्र" in body:
+        return "kshetra"
+    if "ग्राम" in body:
+        return "gram"
+    return ""
+
+
+def build_overview(rows):
+    """Materialise the 'Abhiyan at a Glance' and post tables from Data Summary.
+
+    These are the tracker's headline totals; the Zila-wise sheet is used for
+    district detail and for phone/contest fields, but its total row is an older
+    cut of the post counts. Prefer Data Summary for all statewide totals.
+    """
+    elected = labelled_row(rows, "Elected reps, 3-tier Panchayat")
+    ac = find_row_with(rows, "Fully rural / Partly urban")
+    vistarak = labelled_start(rows, "Vistarak from other states")
+    cluster = labelled_start(rows, "Lok Sabha Cluster Incharge")
+    pravasi = labelled_start(rows, "Lok Sabha Pravasi")
+
+    ac_split = split_numbers(ac.get("D"))
+    org_split = split_numbers(ac.get("F"))
+
+    rlb_posts, ulb_posts = [], []
+    rlb_totals, ulb_totals = {}, {}
+    three_tier = {}
+    section = None
+    for row_number in sorted(rows):
+        cells = rows[row_number]
+        label = cells.get("A", "")
+        if "RLB: Rural Local Bodies" in label:
+            section = "rlb"
+            continue
+        if "ULB: Urban Local Bodies" in label:
+            section = "ulb"
+            continue
+        if section and label == "Total":
+            totals = {
+                "total": number(cells.get("C")),
+                "dataCount": number(cells.get("D")),
+                "mobile": number(cells.get("E")),
+                "mobilePct": mobile_pct(cells.get("F")),
+            }
+            if section == "rlb":
+                rlb_totals = totals
+            else:
+                ulb_totals = totals
+            section = None
+            continue
+        if not section or number(cells.get("C")) <= 0:
+            continue
+        post = {
+            "label": label or cells.get("B", ""),
+            "body": cells.get("B", ""),
+            "total": number(cells.get("C")),
+            "dataCount": number(cells.get("D")),
+            "mobile": number(cells.get("E")),
+            "mobilePct": mobile_pct(cells.get("F")),
+        }
+        if section == "rlb":
+            rlb_posts.append(post)
+            tier = post_tier(post["body"])
+            if not tier:
+                continue
+            entry = three_tier.setdefault(tier, {})
+            if post_kind(post["label"]) == "head":
+                entry.update(
+                    units=post["total"],
+                    head=post["total"],
+                    headDataCount=post["dataCount"],
+                    headMobile=post["mobile"],
+                    headMobilePct=post["mobilePct"],
+                )
+            else:
+                entry.update(
+                    members=post["total"],
+                    memberDataCount=post["dataCount"],
+                    memberMobile=post["mobile"],
+                    memberMobilePct=post["mobilePct"],
+                )
+        else:
+            ulb_posts.append(post)
+
+    rural = number(elected.get("B"))
+    urban = number(elected.get("D"))
+    total = number(elected.get("F")) or rural + urban
+    return {
+        "elected": {"rural": rural, "urban": urban, "total": total},
+        "ac": {
+            "total": number(ac.get("B")) or 403,
+            "fullyRural": ac_split[0] if len(ac_split) > 0 else 0,
+            "partlyUrban": ac_split[1] if len(ac_split) > 1 else 0,
+            "fullyUrban": ac_split[2] if len(ac_split) > 2 else 0,
+        },
+        "organisation": {
+            "zones": org_split[0] if org_split else 0,
+            "zilas": org_split[1] if len(org_split) > 1 else 0,
+        },
+        "vistarak": {
+            "target": number(vistarak.get("B")),
+            "cluster": number(cluster.get("B")) or 20,
+            "pravasi": number(pravasi.get("B")) or 80,
+            "states": vistarak.get("D", ""),
+        },
+        "rlbPosts": rlb_posts,
+        "ulbPosts": ulb_posts,
+        "rlbTotals": rlb_totals,
+        "ulbTotals": ulb_totals,
+        "threeTier": three_tier,
+    }
+
+
+def build_district_tracker(rows):
+    """District-level post and ward counts for the map's panchayat layer."""
+    entries = []
+    for row_number in sorted(rows):
+        if row_number < 4:
+            continue
+        cells = rows[row_number]
+        name = cells.get("B", "")
+        if not name or cells.get("A") == "Total":
+            continue
+        wards = number(cells.get("N"))
+        gps = number(cells.get("L"))
+        if not wards and not gps:
+            continue
+        entries.append(
+            {
+                "name": name,
+                "zone": cells.get("A", ""),
+                "wards": wards,
+                "wardMembers": number(cells.get("O")),
+                "pradhans": gps,
+                "gpHeadPhones": number(cells.get("X")),
+                "gpMemberPhones": number(cells.get("Z")),
+            }
+        )
+    entries.sort(key=lambda item: item["name"])
+    return entries
 
 
 def first_number(cells, *columns):
@@ -325,11 +503,15 @@ def build_district_wards(rows):
 
 def build():
     sheets = load_sheets()
+    overview = build_overview(sheets["Data Summary"])
     matching, matching_totals = build_matching(sheets["Data Matching Summary"])
     three_tier = build_three_tier(sheets["Zila_wise_Panchayat_Summary"])
     bjp = build_bjp(sheets["Panchayat - Data Summary"])
     district_wards = build_district_wards(sheets["Prateek"])
+    district_tracker = build_district_tracker(sheets["Zila_wise_Panchayat_Summary"])
     payload = {
+        "overview": overview,
+        "districts": district_tracker,
         "threeTier": three_tier,
         "dataMatching": matching,
         "dataMatchingTotals": matching_totals,
@@ -342,8 +524,9 @@ def build():
     )
     print(
         f"{TARGET.relative_to(ROOT)}: {len(matching)} local bodies, "
-        f"{len(bjp)} designated posts, {len(district_wards)} districts, three-tier heads " +
-        ", ".join(str(value["head"]) for value in three_tier.values())
+        f"{len(bjp)} designated posts, {len(district_wards)} districts, " +
+        f"{overview['elected']['total']} elected reps, " +
+        f"three-tier heads " + ", ".join(str(value["head"]) for value in overview["threeTier"].values())
     )
 
 
