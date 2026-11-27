@@ -430,6 +430,7 @@ export function createVillageNetwork({ onVillageClick }) {
     const areaSum = cells.reduce((sum, cell) => sum + Math.PI * cell.r * cell.r, 0);
     const fit = Math.min(1, Math.sqrt(areaBudget / Math.max(areaSum, 1)));
     for (const cell of cells) cell.r = Math.max(14, Math.min(72, cell.r * fit));
+    const cellById = new Map(cells.map((cell) => [cell.id, cell]));
 
     // Force layout begins from a deterministic scatter around each geographic
     // anchor, so panchayats visibly settle into clusters instead of snapping.
@@ -455,6 +456,10 @@ export function createVillageNetwork({ onVillageClick }) {
       cell.y = cell.ay + Math.sin(angle) * reach;
     }
     clampCells();
+    for (const cell of cells) {
+      cell._px = cell.x;
+      cell._py = cell.y;
+    }
 
     for (const cell of cells) {
       for (const member of cell.members) {
@@ -724,6 +729,18 @@ export function createVillageNetwork({ onVillageClick }) {
 
     const clampMembers = () => {
       for (const member of members) {
+        const cell = cellById.get(member.cellId);
+        if (cell) {
+          // Keep every team member inside its gram-panchayat circle.
+          const maxR = Math.max(member.r + 1, cell.r - member.r - 2);
+          const dx = member.x - cell.x;
+          const dy = member.y - cell.y;
+          const dist = Math.hypot(dx, dy) || 1;
+          if (dist > maxR) {
+            member.x = cell.x + (dx / dist) * maxR;
+            member.y = cell.y + (dy / dist) * maxR;
+          }
+        }
         member.x = Math.max(member.r, Math.min(width - member.r, member.x));
         member.y = Math.max(member.r, Math.min(height - member.r, member.y));
       }
@@ -751,8 +768,27 @@ export function createVillageNetwork({ onVillageClick }) {
       .force('collide', d3.forceCollide((cell) => cell.r + 6).iterations(3))
       .alphaDecay(0.018)
       .on('tick', () => {
+        // Carry the team members along with their panchayat circle so the
+        // force-directed member layout stays inside the moving container.
+        for (const cell of cells) {
+          if (Number.isFinite(cell._px)) {
+            const dx = cell.x - cell._px;
+            const dy = cell.y - cell._py;
+            if (dx || dy) {
+              for (const member of cell.members) {
+                member.x += dx;
+                member.y += dy;
+              }
+            }
+          }
+        }
         clampCells();
+        for (const cell of cells) {
+          cell._px = cell.x;
+          cell._py = cell.y;
+        }
         syncMemberAnchors();
+        clampMembers();
         paintCells();
       });
 
@@ -765,11 +801,12 @@ export function createVillageNetwork({ onVillageClick }) {
         .distance((link) => (link.type === 'panchayat' ? 16 : 12))
         .strength((link) => (link.type === 'panchayat' ? 0.1 : 0.16)))
       .force('charge', d3.forceManyBody().strength((member) => -Math.max(6, member.r * 2.2)).distanceMax(58))
-      .force('x', d3.forceX((member) => member.cx).strength(0.06))
-      .force('y', d3.forceY((member) => member.cy).strength(0.06))
+      .force('x', d3.forceX((member) => member.cx).strength(0.12))
+      .force('y', d3.forceY((member) => member.cy).strength(0.12))
       .force('collide', d3.forceCollide((member) => member.r + 1.15).iterations(2))
       .alphaDecay(0.015)
       .on('tick', () => {
+        syncMemberAnchors();
         clampMembers();
         paintMembers();
       });
@@ -782,6 +819,10 @@ export function createVillageNetwork({ onVillageClick }) {
         sim.alpha(0);
       }
       clampCells();
+      for (const cell of cells) {
+        cell._px = cell.x;
+        cell._py = cell.y;
+      }
       syncMemberAnchors();
       paintCells();
       clampMembers();
@@ -807,6 +848,10 @@ export function createVillageNetwork({ onVillageClick }) {
         member.y += Math.sin(angle) * reach;
       }
       clampCells();
+      for (const cell of cells) {
+        cell._px = cell.x;
+        cell._py = cell.y;
+      }
       clampMembers();
       paintCells();
       paintMembers();

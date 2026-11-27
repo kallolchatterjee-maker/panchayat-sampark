@@ -537,7 +537,7 @@ function ensureVillageNetwork() {
   if (villageNetwork) return Promise.resolve(villageNetwork);
   if (networkPromise) return networkPromise;
   networkPromise = import(
-    `./network.js?v=${encodeURIComponent(boot.v)}&ui=25`
+    `./network.js?v=${encodeURIComponent(boot.v)}&ui=26`
   )
     .then(({ createVillageNetwork }) => {
       villageNetwork = createVillageNetwork({
