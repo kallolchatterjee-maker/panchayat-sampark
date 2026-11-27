@@ -828,10 +828,12 @@ h1,
 h2 {
   font: 700 clamp(38px, 5vw, 72px) / 1.02 Poppins, sans-serif;
   margin: 0 0 10px;
+  white-space: nowrap;
 }
 
 h2 {
-  font-size: clamp(30px, 3.4vw, 46px);
+  font-size: clamp(24px, 2.6vw, 34px);
+  white-space: nowrap;
 }
 
 h3 {
@@ -1851,6 +1853,7 @@ input::placeholder,
   margin: 2px 0;
   color: var(--cream);
   font: 700 22px/1.2 Poppins, sans-serif;
+  white-space: nowrap;
 }
 
 .network-heading p:last-child {
@@ -2138,10 +2141,12 @@ input::placeholder,
   h1,
   h2 {
     font-size: clamp(34px, 3.8vw, 56px);
+    white-space: nowrap;
   }
 
   h2 {
-    font-size: clamp(28px, 3vw, 40px);
+    font-size: clamp(24px, 2.6vw, 34px);
+    white-space: nowrap;
   }
 
   .big {
