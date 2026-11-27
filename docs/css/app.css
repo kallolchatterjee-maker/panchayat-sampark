@@ -1417,7 +1417,11 @@ td small {
 
 .chart .lbl {
   fill: var(--chart-label);
-  font: 600 10px Poppins, sans-serif;
+  font: 600 9px Poppins, sans-serif;
+  paint-order: stroke;
+  stroke: var(--story-bg);
+  stroke-width: 3px;
+  stroke-linejoin: round;
 }
 
 /* ------------------------------------------------------------- composition */

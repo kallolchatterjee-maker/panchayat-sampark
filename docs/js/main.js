@@ -683,7 +683,7 @@ function renderScatter() {
 
   const d3 = window.d3;
   const width = Math.max(280, host.clientWidth || 400);
-  const height = 260;
+  const height = 300;
   const margin = { top: 10, right: 8, bottom: 24, left: 30 };
 
   host.innerHTML = '';
@@ -738,27 +738,30 @@ function renderScatter() {
     .attr('class', 'dot')
     .attr('cx', (row) => x(row.density))
     .attr('cy', (row) => y(row.index))
-    .attr('r', 2.6)
+    .attr('r', 1.9)
     .attr('fill', (row) => color(row.index))
-    .attr('fill-opacity', 0.85)
+    .attr('fill-opacity', 0.6)
     .append('title')
     .text(
       (row) =>
         `${row.name} · ${row.district}\n${d(row.density, 2)} बूथ/वर्ग किमी · सूचकांक ${d(row.index, 1)}`,
     );
 
-  const labelled = [...rows].sort((a, b) => b.density - a.density).slice(0, 3);
+  const labelled = [...rows]
+    .sort((a, b) => b.density - a.density)
+    .slice(0, 3)
+    .map((row, i) => ({ ...row, _dy: i % 2 === 0 ? -7 : 9 }));
   svg
     .append('g')
     .selectAll('text.lbl')
     .data(labelled)
     .join('text')
     .attr('class', 'lbl')
-    .attr('x', (row) => Math.min(width - margin.right - 4, x(row.density) + 5))
-    .attr('y', (row) => y(row.index) + 3)
+    .attr('x', (row) => Math.min(width - margin.right - 4, x(row.density) + 6))
+    .attr('y', (row) => y(row.index) + row._dy)
     .attr('text-anchor', (row) => (x(row.density) > width - 90 ? 'end' : 'start'))
-    .attr('dx', (row) => (x(row.density) > width - 90 ? -5 : 0))
-    .text((row) => row.name);
+    .attr('dx', (row) => (x(row.density) > width - 90 ? -6 : 0))
+    .text((row) => (row.name.length > 12 ? `${row.name.slice(0, 11)}…` : row.name));
   scatterReady = true;
 }
 
